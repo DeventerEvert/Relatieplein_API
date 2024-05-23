@@ -1,3 +1,4 @@
+// Testing the workflow
 <?php
 require '../config/DBconfig.php';
 require '../handlers/retrieveAPI.php';
