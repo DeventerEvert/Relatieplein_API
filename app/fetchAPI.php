@@ -1,4 +1,3 @@
-// Testing the workflow
 <?php
 require '../config/DBconfig.php';
 require '../handlers/retrieveAPI.php';
@@ -58,7 +57,5 @@ echo json_encode($result);
 exit();
 }
 
-//Voor chats en images, fijn vinden als alle chats en images van 1 userID opgehaald worden
-//alle chats en images ophalen via sender id
-
+//Bij allMessageByUser Select * veranderen van Message_Id naar Sender_id TODO:
 ?>
