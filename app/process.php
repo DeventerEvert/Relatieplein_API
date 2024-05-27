@@ -1,34 +1,9 @@
 <?php
 require_once '../handlers/postValuesToDatabase.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') 
-{
-    //Handle saving image, profileUser needs to be altered to be dynamic.. but currently not in possesion of a log-in system.
-    $profileImage = null;
-    $profileUser = 1;
-    if (isset($_FILES['profileImage']) && $_FILES['profileImage']['error'] === UPLOAD_ERR_OK) {
-        $imageTmpPath = $_FILES['profileImage']['tmp_name'];
-        $imageType= $_FILES['profileImage']['type'];
-        $imageName = basename($_FILES['profileImage']['name']);
-        $uploadDir = '../images/profiles/';
-        $profileImage = $uploadDir . $imageName;
-        move_uploaded_file($imageTmpPath, $profileImage);
-    }
-
-    $data = [
-        'Profile_User_idUser' => $profileUser,
-        'image_file_path' => $uploadDir,
-        'image_file_name' => $imageName,
-        'image_file_type' => $imageType
-    ];
-
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
     $userValues = new postUserValues();
-
-    if ($userValues->saveImage($data)) {
-        echo "Gegevens succesvol opgeslagen.";
-    } else {
-        echo "Er is een fout opgetreden bij het opslaan van de gegevens.";
-    }
 
     //Handle saving profile values
     $description = $_POST['aboutMe'];
@@ -37,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
     $fav_color = $_POST['favColour'];
     $fav_animal = $_POST['favAnimal'];
     $fav_season = $_POST['favSeason'];
+    $emoji_description = $_POST['emoji'];
     $starsign = $_POST['starsign'];
     $hobby_description = $_POST['hobbies'];
     $occupation = $_POST['occupation'];
@@ -52,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
         'fav_color' => $fav_color,
         'fav_animal' => $fav_animal,
         'fav_season' => $fav_season,
+        'emoji_description' => $emoji_description,
         'starsign' => $starsign,
         'hobby_description' => $hobby_description,
         'occupation' => $occupation,
@@ -60,6 +37,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
     ];
 
     if ($userValues->saveHobbies($data)) {
+        echo "Gegevens succesvol opgeslagen.";
+    } else {
+        echo "Er is een fout opgetreden bij het opslaan van de gegevens.";
+    }
+
+    //Handle saving image, profileUser needs to be altered to be dynamic.. but currently not in possesion of a log-in system.
+    $profileImage = null;
+    $profileUser = 1;
+    if (isset($_FILES['profileImage']) && $_FILES['profileImage']['error'] === UPLOAD_ERR_OK) {
+        $imageTmpPath = $_FILES['profileImage']['tmp_name'];
+        $imageType = $_FILES['profileImage']['type'];
+        $imageName = basename($_FILES['profileImage']['name']);
+        $uploadDir = '../images/profiles/';
+        $profileImage = $uploadDir . $imageName;
+        move_uploaded_file($imageTmpPath, $profileImage);
+    }
+
+    $data = [
+        'Profile_User_idUser' => $profileUser,
+        'image_file_path' => $uploadDir,
+        'image_file_name' => $imageName,
+        'image_file_type' => $imageType
+    ];
+
+    if ($userValues->saveImage($data)) {
         echo "Gegevens succesvol opgeslagen.";
     } else {
         echo "Er is een fout opgetreden bij het opslaan van de gegevens.";
@@ -90,5 +92,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
     } else {
         echo "Dynamic fields data is not set or is not an array.<br>";
     }
-}   
+}
 ?>
