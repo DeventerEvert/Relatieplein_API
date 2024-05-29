@@ -79,7 +79,7 @@ class API {
                 $result['singleImage'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allImage != null)
+            if($allImage != false)
             {
                 $stmt = $this->conn->prepare('SELECT * FROM image');
                 $stmt->execute();
@@ -94,7 +94,7 @@ class API {
                 $result['singleLooking_for'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allLooking_for != null)
+            if($allLooking_for != false)
             {
                 $stmt = $this->conn->prepare('SELECT * FROM looking_for');
                 $stmt->execute();
@@ -109,7 +109,7 @@ class API {
                 $result['singleMatch'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allMatch != null)
+            if($allMatch != false)
             {
                 $stmt = $this->conn->prepare("SELECT * FROM `match`");
                 $stmt->execute();
@@ -118,30 +118,30 @@ class API {
 
             if($singleMessage != null)
             {
-                $stmt = $this->conn->prepare('SELECT * FROM "message" WHERE message_id = ?');
+                $stmt = $this->conn->prepare('SELECT * FROM `message` WHERE message_id = ?');
                 $stmt->bindParam(1, $singleMessage, PDO::PARAM_INT);
                 $stmt->execute();
                 $result['singleMessage'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allMessage != null)
+            if($allMessage != false)
             {
-                $stmt = $this->conn->prepare('SELECT * FROM "message"');
+                $stmt = $this->conn->prepare('SELECT * FROM `message`');
                 $stmt->execute();
                 $result['allMessage'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
 
             if($singleProfile != null)
             {
-                $stmt = $this->conn->prepare('SELECT * FROM "profile" WHERE user_id = ?');
+                $stmt = $this->conn->prepare('SELECT * FROM `profile` WHERE user_id = ?');
                 $stmt->bindParam(1, $singleProfile, PDO::PARAM_INT);
                 $stmt->execute();
                 $result['singleProfile'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allProfile != null)
+            if($allProfile != false)
             {
-                $stmt = $this->conn->prepare('SELECT * FROM "profile"');
+                $stmt = $this->conn->prepare('SELECT * FROM `profile`');
                 $stmt->execute();
                 $result['allProfile'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
@@ -154,7 +154,7 @@ class API {
                 $result['singleReport'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allReport != null)
+            if($allReport != false)
             {
                 $stmt = $this->conn->prepare('SELECT * FROM report');
                 $stmt->execute();
@@ -169,7 +169,7 @@ class API {
                 $result['singleSexual_preference'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allSexual_preference != null)
+            if($allSexual_preference != false)
             {
                 $stmt = $this->conn->prepare('SELECT * FROM sexual_preference');
                 $stmt->execute();
@@ -184,7 +184,7 @@ class API {
                 $result['singleSpecial_field'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allSpecial_field != null)
+            if($allSpecial_field != false)
             {
                 $stmt = $this->conn->prepare('SELECT * FROM special_field');
                 $stmt->execute();
@@ -199,7 +199,7 @@ class API {
                 $result['singleSwipe'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allSwipe != null)
+            if($allSwipe !== false)
             {
                 $stmt = $this->conn->prepare('SELECT * FROM swipe');
                 $stmt->execute();
@@ -214,7 +214,7 @@ class API {
                 $result['singleUser'] = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            if($allUser !== null)
+            if($allUser !== false)
             {
                 $stmt = $this->conn->prepare('SELECT * FROM user');
                 $stmt->execute();
@@ -242,5 +242,30 @@ class API {
 }
 
 
+            public function insertIntoDatabase($match_id, $message, $message_liked, $replied_message_at){
+
+                try {
+                    // Begin transactie
+                    $this->conn->beginTransaction();
+        
+                    // Insert waardes van URL in de message tabel
+                    $stmt = $this->conn->prepare('INSERT INTO message (match_id, message, message_liked, replied_message_id) VALUES (?, ?, ?, ?)');
+                    $stmt->bindParam(1, $match_id, PDO::PARAM_INT);
+                    $stmt->bindParam(2, $message, PDO::PARAM_STR);
+                    $stmt->bindParam(3, $message_liked, PDO::PARAM_INT);
+                    $stmt->bindParam(4, $replied_message_at, PDO::PARAM_STR);
+                    $stmt->execute();
+        
+                    // Als er een swipe is gemaakt
+                    $this->conn->commit();
+                    return ['status' => 201, 'message' => 'Message goed aangemaakt'];
+                } catch (Exception $e) {
+                    // Als er geen swipe is gemaakt
+                    $this->conn->rollBack();
+                    return ['status' => 500, 'message' => 'Message niet goed aangemaakt: ' . $e->getMessage()];
+                }
+            }
+
 }
+
 ?>
