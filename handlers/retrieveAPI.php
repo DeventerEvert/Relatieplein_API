@@ -62,185 +62,257 @@ class API {
         }
     }
 
-    public function retrieveFromDatabase($singleImage, $allImage, $singleLooking_for, $allLooking_for, $singleMatch, $allMatch, $singleMessage, $allMessage, $singleProfile, $allProfile, $singleReport, $allReport, 
-    $singleSexual_preference, $allSexual_preference, $singleSpecial_field, $allSpecial_field, $singleSwipe, $allSwipe, $singleUser, $allUser, $allImageByUser, $allMessageByUser)
+
+
+
+
+
+
+    //Retrieve functions for database
+    //In url try the following for results: view-source:http://localhost/Level 10/Relatieplein_API/Relatieplein_API/app/fetchAPI.php?allSwipe the part after the ? can be changed with any of the values below for different results..!
+
+
+
+    public function retrieveImage($singleImage, $allImage, $allImageByUser)
     {
         $result = [];
-        
-        if($_SERVER["REQUEST_METHOD"] === "GET")
+
+        if($singleImage != null)
         {
-            
+            $stmt = $this->conn->prepare('SELECT * FROM image WHERE image_id = ?');
+            $stmt->bindParam(1, $singleImage, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleImage'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-            if($singleImage != null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM image WHERE image_id = ?');
-                $stmt->bindParam(1, $singleImage, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleImage'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
+        if($allImage != false)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM image');
+            $stmt->execute();
+            $result['allImage'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
-            if($allImage != false)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM image');
-                $stmt->execute();
-                $result['allImage'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
+        if($allImageByUser !== null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM image WHERE Profile_User_idUser = ?');
+            $stmt->bindParam(1, $allImageByUser, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['allImageByUser'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
-            if($singleLooking_for != null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM looking_for WHERE profile_id = ?');
-                $stmt->bindParam(1, $singleLooking_for, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleLooking_for'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
-            if($allLooking_for != false)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM looking_for');
-                $stmt->execute();
-                $result['allLooking_for'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($singleMatch != null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM `match` WHERE match_id = ?');
-                $stmt->bindParam(1, $singleMatch, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleMatch'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
-            if($allMatch != false)
-            {
-                $stmt = $this->conn->prepare("SELECT * FROM `match`");
-                $stmt->execute();
-                $result['allMatch'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($singleMessage != null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM `message` WHERE message_id = ?');
-                $stmt->bindParam(1, $singleMessage, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleMessage'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
-            if($allMessage != false)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM `message`');
-                $stmt->execute();
-                $result['allMessage'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($singleProfile != null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM `profile` WHERE user_id = ?');
-                $stmt->bindParam(1, $singleProfile, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleProfile'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
-            if($allProfile != false)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM `profile`');
-                $stmt->execute();
-                $result['allProfile'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($singleReport != null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM report WHERE report_id = ?');
-                $stmt->bindParam(1, $singleReport, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleReport'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
-            if($allReport != false)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM report');
-                $stmt->execute();
-                $result['allReport'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($singleSexual_preference != null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM sexual_preference WHERE profile_id = ?');
-                $stmt->bindParam(1, $singleSexual_preference, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleSexual_preference'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
-            if($allSexual_preference != false)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM sexual_preference');
-                $stmt->execute();
-                $result['allSexual_preference'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($singleSpecial_field != null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM special_field WHERE field_id = ?');
-                $stmt->bindParam(1, $singleSpecial_field, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleSpecial_field'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
-            if($allSpecial_field != false)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM special_field');
-                $stmt->execute();
-                $result['allSpecial_field'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($singleSwipe != null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM swipe WHERE swipe_swiper_user_id = ?');
-                $stmt->bindParam(1, $singleSwipe, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleSwipe'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
-            if($allSwipe !== false)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM swipe');
-                $stmt->execute();
-                $result['allSwipe'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($singleUser !== null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM user WHERE user_id = ?');
-                $stmt->bindParam(1, $singleUser, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['singleUser'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
-
-            if($allUser !== false)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM user');
-                $stmt->execute();
-                $result['allUser'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($allImageByUser !== null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM image WHERE Profile_User_idUser = ?');
-                $stmt->bindParam(1, $allImageByUser, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['allImageByUser'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-            if($allMessageByUser !== null)
-            {
-                $stmt = $this->conn->prepare('SELECT * FROM message WHERE message_id = ?');
-                $stmt->bindParam(1, $allMessageByUser, PDO::PARAM_INT);
-                $stmt->execute();
-                $result['allMessageByUser'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-
-                return $result;
+        return $result;
     }
-}
 
+    public function retrieveLooking_for($singleLooking_for, $allLooking_for)
+    {
+        $result = [];
+
+        if($singleLooking_for != null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM looking_for WHERE profile_id = ?');
+            $stmt->bindParam(1, $singleLooking_for, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleLooking_for'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if($allLooking_for != false)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM looking_for');
+            $stmt->execute();
+            $result['allLooking_for'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $result;
+    }
+
+    public function retrieveMatch($singleMatch, $allMatch)
+    {
+        $result = [];
+
+        if($singleMatch != null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM `match` WHERE match_id = ?');
+            $stmt->bindParam(1, $singleMatch, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleMatch'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if($allMatch != false)
+        {
+            $stmt = $this->conn->prepare("SELECT * FROM `match`");
+            $stmt->execute();
+            $result['allMatch'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $result;
+    }
+
+    public function retrieveMessage($singleMessage, $allMessage, $allMessageByUser)
+    {
+        $result = [];
+
+        if($singleMessage != null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM `message` WHERE message_id = ?');
+            $stmt->bindParam(1, $singleMessage, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleMessage'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if($allMessage != false)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM `message`');
+            $stmt->execute();
+            $result['allMessage'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        
+        if($allMessageByUser !== null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM message WHERE sender_id = ?');
+            $stmt->bindParam(1, $allMessageByUser, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['allMessageByUser'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $result;
+    }
+
+    public function retrieveProfile($singleProfile, $allProfile)
+    {
+        $result = [];
+
+        if($singleProfile != null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM `profile` WHERE user_id = ?');
+            $stmt->bindParam(1, $singleProfile, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleProfile'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if($allProfile != false)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM `profile`');
+            $stmt->execute();
+            $result['allProfile'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $result;
+    }
+
+    public function retrieveReport($singleReport, $allReport)
+    {
+        $result = [];
+
+        if($singleReport != null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM report WHERE report_id = ?');
+            $stmt->bindParam(1, $singleReport, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleReport'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if($allReport != false)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM report');
+            $stmt->execute();
+            $result['allReport'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $result;
+    }
+
+    public function retrieveSexual_preference($singleSexual_preference, $allSexual_preference)
+    {
+        $result = [];
+
+        if($singleSexual_preference != null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM sexual_preference WHERE profile_id = ?');
+            $stmt->bindParam(1, $singleSexual_preference, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleSexual_preference'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if($allSexual_preference != false)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM sexual_preference');
+            $stmt->execute();
+            $result['allSexual_preference'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $result;
+    }
+
+    public function retrieveSpecial_field($singleSpecial_field, $allSpecial_field)
+    {
+        $result = [];
+
+        if($singleSpecial_field != null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM special_field WHERE field_id = ?');
+            $stmt->bindParam(1, $singleSpecial_field, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleSpecial_field'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if($allSpecial_field != false)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM special_field');
+            $stmt->execute();
+            $result['allSpecial_field'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $result;
+    }
+
+    public function retrieveSwipe($singleSwipe, $allSwipe)
+    {
+        $result = [];
+
+        if($singleSwipe != null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM swipe WHERE swipe_swiper_user_id = ?');
+            $stmt->bindParam(1, $singleSwipe, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleSwipe'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if($allSwipe !== false)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM swipe');
+            $stmt->execute();
+            $result['allSwipe'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $result;
+    }
+
+    public function retrieveUser($singleUser, $allUser)
+    {
+        if($singleUser !== null)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM user WHERE user_id = ?');
+            $stmt->bindParam(1, $singleUser, PDO::PARAM_INT);
+            $stmt->execute();
+            $result['singleUser'] = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if($allUser != false)
+        {
+            $stmt = $this->conn->prepare('SELECT * FROM user');
+            $stmt->execute();
+            $result['allUser'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        return $result;
+    }
+
+
+
+
+
+    //Function for inserting a message into a database, this has been tried and tested with postman and as long as the necessary tables are filled will work!
 
             public function insertIntoDatabase($match_id, $message, $message_liked, $replied_message_at){
 
