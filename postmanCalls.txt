@@ -1,0 +1,18 @@
+Voor message:
+
+{
+    "match_id": 7,
+    "sender_id": 1,
+    "message": "Hello, how are you?",
+    "message_liked": 1,
+    "replied_message_id": 2
+}
+
+
+Voor swipe:
+
+{
+    "user_id": 2,
+    "swiped_user_id": 1,
+    "type": 1
+}

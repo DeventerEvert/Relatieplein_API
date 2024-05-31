@@ -7,25 +7,34 @@ require '../handlers/retrieveAPI.php';
 header('Content-Type: application/json');
 
 
-//Underneath values refer to registerSwipe function of retrieveAPI.php
-parse_str(file_get_contents("php://input"), $_PUT);
+//Underneath values refer to registerSwipe function of retrieveAPI.php and insertIntoDatabase function of retrieveAPI.php
+$input = json_decode(file_get_contents('php://input'), true);
 
-$userId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : null;
-$swipedUserId = isset($_GET['swiped_user_id']) ? (int) $_GET['swiped_user_id'] : null;
-$type = isset($_GET['type']) ? $_GET['type'] : null;
+$userId = isset($input['user_id']) ? (int) $input['user_id'] : null;
+$swipedUserId = isset($input['swiped_user_id']) ? (int) $input['swiped_user_id'] : null;
+$type = isset($input['type']) ? (int) $input['type'] : null;
 
+$match_id = isset($input['match_id']) ? (int) $input['match_id'] : null;
+$sender_id = isset($input['sender_id']) ? (int) $input['sender_id'] : null;
+$message = isset($input['message']) ? $input['message'] : null;  
+$message_liked = isset($input['message_liked']) ? (int) $input['message_liked'] : null;
+$replied_message_id = isset($input['replied_message_id']) ? (int) $input['replied_message_id'] : null;
 
 $swipeService = new API();
-if ($_SERVER["REQUEST_METHOD"] === "GET") {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!is_null($userId) && !is_null($swipedUserId) && !is_null($type)) {
         $response = $swipeService->registerSwipe($userId, $swipedUserId, $type);
         http_response_code($response['status']);    
         echo json_encode(['message' => $response['message']]);
+    } elseif (!is_null($match_id) && !is_null($sender_id) && !is_null($message) && !is_null($message_liked) && !is_null($replied_message_id)) {
+        $response = $swipeService->insertIntoDatabase($match_id, $sender_id, $message, $message_liked, $replied_message_id);
+        http_response_code($response['status']);
+        echo json_encode(['message' => $response['message']]);
+    } else {
+        http_response_code(400);
+        echo json_encode(['message' => 'Invalid input']);
     }
 }
-
-
-
 
 
 
@@ -194,30 +203,4 @@ if(!is_null($singleUser) || ($allUser != false) )
     exit;
     }
 }
-
-
-
-
-
-//Refers to insertIntoDatabase function on the retrieveAPI.php page
-$input = json_decode(file_get_contents('php://input'), true);
-
-$match_id = isset($input['match_id']) ? (int) $input['match_id'] : null;
-$message = isset($input['message']) ? $input['message'] : null;  // Changed to STRING
-$message_liked = isset($input['message_liked']) ? (int) $input['message_liked'] : null;
-$replied_message_id = isset($input['replied_message_id']) ? (int) $input['replied_message_id'] : null;
-$sent_at = isset($input['sent_at']) ? $input['sent_at'] : null;
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    if (!is_null($match_id) && !is_null($message) && !is_null($message_liked) && !is_null($replied_message_id)) {
-        $response = $swipeService->insertIntoDatabase($match_id, $message, $message_liked, $replied_message_id);
-        http_response_code($response['status']);
-        echo json_encode(['message' => $response['message']]);
-    } else {
-        http_response_code(400); // Bad Request
-        echo json_encode(['message' => 'Invalid input']);
-    }
-}
-
-//Bij allMessageByUser Select * veranderen van Message_Id naar Sender_id TODO:
 ?>
