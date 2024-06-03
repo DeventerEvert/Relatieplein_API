@@ -2,8 +2,7 @@
 require_once '../config/DBconfig.php';
 
 class API {
-
-    private PDO $conn;
+    private $conn;
 
     public function __construct() {
         $this->conn = Database::getInstance()->getConnection();
@@ -12,28 +11,26 @@ class API {
     public function registerSwipe($userId, $swipedUserId, $type) {
         if (!in_array($type, [0, 1])) {
             return ['status' => 400, 'message' => 'Invalid swipe direction'];
-        }
+        } 
 
         try {
             //Van deze functie meerder functies maken om het netjes te houden
             // Begin transactie
             $this->conn->beginTransaction();
 
-            // Insert waardes van URL in swipe tabel
+            // Insert values into swipe table
             $stmt = $this->conn->prepare('INSERT INTO swipe (swipe_swiper_user_id, swipe_swiped_user_id, swipe_type) VALUES (?, ?, ?)');
             $stmt->bindParam(1, $userId, PDO::PARAM_INT);
             $stmt->bindParam(2, $swipedUserId, PDO::PARAM_INT);
             $stmt->bindParam(3, $type, PDO::PARAM_INT);
             $stmt->execute();
 
-  
-            //We gaan kijken of 2 users matchen
+            // Check if users match
             $matchFound = false;
             if ($type == 1) {
-                $stmt = $this->conn->prepare('SELECT * FROM swipe WHERE swipe_swiped_user_id = ? AND swipe_swiper_user_id = ? AND swipe_type = ?');
+                $stmt = $this->conn->prepare('SELECT * FROM swipe WHERE swipe_swiped_user_id = ? AND swipe_swiper_user_id = ? AND swipe_type = 1');
                 $stmt->bindParam(1, $userId, PDO::PARAM_INT);
                 $stmt->bindParam(2, $swipedUserId, PDO::PARAM_INT);
-                $stmt->bindParam(3, $type, PDO::PARAM_INT);
                 $stmt->execute();
                 $result = $stmt->fetch();
 
@@ -42,27 +39,25 @@ class API {
                 }
             }
 
-            // Als 2 users matchen word dit in de match tabel geplaatst
+            // If users match, insert into match table
             if ($matchFound) {
                 $stmt = $this->conn->prepare("INSERT INTO `match` (match_user_one_id, match_user_two_id) VALUES (?, ?)");
                 $stmt->bindParam(1, $userId, PDO::PARAM_INT);
                 $stmt->bindParam(2, $swipedUserId, PDO::PARAM_INT);
                 $stmt->execute();
                 $this->conn->commit();
-                // Als er een match is gevonden
-                return ['status' => 202, 'message' => 'Match gevonden!'];
+                return ['status' => 202, 'message' => 'Match found!'];
             }
 
-            // Als er een swipe is gemaakt
+            // Commit transaction if no match found
             $this->conn->commit();
-            return ['status' => 201, 'message' => 'Swipe goed aangemaakt'];
+            return ['status' => 201, 'message' => 'Swipe successfully registered'];
         } catch (Exception $e) {
-            // Als er geen swipe is gemaakt
+            // Rollback transaction on error
             $this->conn->rollBack();
-            return ['status' => 500, 'message' => 'Swipe niet goed aangemaakt: ' . $e->getMessage()];
+            return ['status' => 500, 'message' => 'Swipe registration failed: ' . $e->getMessage()];
         }
     }
-
 
 
 
@@ -315,18 +310,19 @@ class API {
 
     //Function for inserting a message into a database, this has been tried and tested with postman and as long as the necessary tables are filled will work!
 
-            public function insertIntoDatabase($match_id, $message, $message_liked, $replied_message_at){
+            public function insertIntoDatabase($match_id, $sender_id, $message, $message_liked, $replied_message_at){
 
                 try {
                     // Begin transactie
                     $this->conn->beginTransaction();
         
                     // Insert waardes van URL in de message tabel
-                    $stmt = $this->conn->prepare('INSERT INTO message (match_id, message, message_liked, replied_message_id) VALUES (?, ?, ?, ?)');
+                    $stmt = $this->conn->prepare('INSERT INTO message (match_id, sender_id, message, message_liked, replied_message_id) VALUES (?, ?, ?, ?, ?)');
                     $stmt->bindParam(1, $match_id, PDO::PARAM_INT);
-                    $stmt->bindParam(2, $message, PDO::PARAM_STR);
-                    $stmt->bindParam(3, $message_liked, PDO::PARAM_INT);
-                    $stmt->bindParam(4, $replied_message_at, PDO::PARAM_STR);
+                    $stmt->bindParam(2, $sender_id, PDO::PARAM_INT);
+                    $stmt->bindParam(3, $message, PDO::PARAM_STR);
+                    $stmt->bindParam(4, $message_liked, PDO::PARAM_INT);
+                    $stmt->bindParam(5, $replied_message_at, PDO::PARAM_STR);
                     $stmt->execute();
         
                     // Als er een swipe is gemaakt
@@ -336,6 +332,7 @@ class API {
                     // Als er geen swipe is gemaakt
                     $this->conn->rollBack();
                     return ['status' => 500, 'message' => 'Message niet goed aangemaakt: ' . $e->getMessage()];
+  
                 }
             }
 
