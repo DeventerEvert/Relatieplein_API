@@ -20,4 +20,4 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./ # Adjust this if your files are in a different directory
-        server-dir: /index/relatieplein/
+        server-dir: /index/Relatieplein_API/
