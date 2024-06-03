@@ -15,6 +15,7 @@ class API {
         }
 
         try {
+            //Van deze functie meerder functies maken om het netjes te houden
             // Begin transactie
             $this->conn->beginTransaction();
 

@@ -1,0 +1,50 @@
+@media only screen and (min-width: 1920px) {
+    section[class=hero] > div > p:nth-of-type(1) {
+        font-size: 7rem;
+    }
+    section[class=hero] > div > p:nth-of-type(2) {
+        font-size: 1.25rem;
+        line-height: 3rem;
+    }
+    section[class=hero] > .preview {
+        height: 40rem;
+        width: 25rem;
+    }
+    header > div:nth-of-type(1) > p, header > div:nth-of-type(2) > a, header > div:nth-of-type(3) > a {
+        font-size: 1.25rem;
+    }
+    section[class=watdoenwe] > div:nth-of-type(2) > p:nth-of-type(1) {
+        font-size: 7rem;
+    }
+    section[class=watdoenwe] > div:nth-of-type(2) > p:nth-of-type(2) {
+        font-size: 1.5rem;
+        line-height: 3rem;
+    }
+    section[class=watdoenwe] > div:nth-of-type(1) > div {
+        height: 40rem;
+        width: 40rem;
+    }
+    section[class=watdoenwe] > div:nth-of-type(1) > div > div:nth-of-type(2) > p:nth-of-type(1) {
+        font-size: 2rem;
+    }
+    section[class=watdoenwe] > div:nth-of-type(1) > div > div:nth-of-type(2) > p:nth-of-type(2) {
+        line-height: 3rem;
+        font-size: 1.5rem;
+    }
+    section[class=contact] > div:nth-of-type(1) > p:nth-of-type(1) {
+        font-size: 7rem;
+    }
+    section[class=contact] > div:nth-of-type(1) > p:nth-of-type(2) {
+        line-height: 3rem;
+        font-size: 1.5rem;
+    }
+    section[class=contact] > div:nth-of-type(2) > form > input {
+        font-size: 1rem;
+    }
+    footer > div:nth-of-type(1) > a {
+        font-size: 1.25rem;
+    }
+    footer > div:nth-of-type(2) > p {
+        font-size: 1.25rem !important;
+    }
+}

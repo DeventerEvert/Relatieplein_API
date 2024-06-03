@@ -1,0 +1,249 @@
+#gradient-wrapper {
+	position: absolute;
+	top: auto;
+	transform-origin: top left;
+	transform: skewY(-12deg);
+	-webkit-transform: skewY(-12deg);
+	height: 70vh;
+	max-width: 100vw;
+	min-width: 100%;
+}
+#gradient-canvas {
+	--gradient-color-1: #56A64C;
+	--gradient-color-2: #6AB554;
+	--gradient-color-3: #91E27F;
+	--gradient-color-4: #D2F1D3;
+}
+#go-up {
+	display: none;
+	cursor: pointer;
+	position: fixed;
+	z-index: 1;
+	bottom: 2rem;
+	right: 2rem;
+	background: #11253E;
+	width: 5rem;
+	height: 5rem;
+	border-radius: 50%;
+	justify-content: center;
+	align-content: center;
+	align-items: center;
+	transition: all 0.2s;
+	span {
+		color: white;
+		font-size: 2rem;
+	}
+}
+#go-up:hover {
+	background: var(--primary);
+}
+.food {
+	position: absolute;
+	width: 12.5rem;
+	aspect-ratio: 1;
+}
+#burger {
+	top: -7rem;
+	right: -2.5rem;
+	z-index: -10;
+}
+#hotdog {
+	bottom: -5rem;
+	left: -6rem;
+	z-index: 1;
+}
+#soda {
+	top: -10rem;
+	right: 0;
+	z-index: -10
+}
+p {
+	width: fit-content;
+}
+main {
+	max-height: 100vh;
+	max-width: 100vw;
+}
+section {
+	max-height: 100vh;
+	max-width: 100vw;
+	padding: 11rem;
+}
+section[class=hero] {
+	display: flex;
+}
+section[class=hero] > div {
+	display: flex;
+	width: 100%;
+	flex-direction: column;
+	gap: 3rem;
+}
+section[class=hero] > div > p:nth-of-type(1) {
+	color: #393939;
+	font-size: 5.5rem;
+	font-weight: bold;
+	mix-blend-mode: color-burn;
+	margin-top: 1rem;
+}
+section[class=hero] > div > p:nth-of-type(2) {
+	color: #425466;
+	font-size: 1.125rem;
+	line-height: 2rem;
+	font-weight: 300;
+	z-index: 1;
+}
+section[class=hero] > .preview {
+	background: white;
+	height: 30rem;
+	width: 20rem;
+	z-index: 1;
+	border-radius: 2rem;
+	filter: drop-shadow(0px 2px 10px rgba(0, 0, 0, 0.07));
+}
+section[class=hero] > div > div {
+	width: fit-content;
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	align-items: center;
+	gap: 2rem;
+}
+section[class=hero] > div > div > a {
+	width: fit-content;
+}
+section[class=hero] > div > div > a:nth-of-type(1) {
+	background: #11253E;
+	color: white;
+	padding: 0.275rem 1rem;
+	border-radius: 3.125rem;
+	span {
+		color: white;
+	}
+}
+section[class=hero] > div > div > a:nth-of-type(1):hover {
+	background: var(--primary);
+}
+section[class=hero] > div > div > a:nth-of-type(1),
+section[class=hero] > div > div > a:nth-of-type(2) {
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	align-items: center;
+	transition: all 0.2s;
+}
+section[class=watdoenwe] {
+	display: grid;
+	align-items: start;
+	grid-template-columns: 1fr 1fr;
+	gap: 2rem;
+}
+section[class=watdoenwe] > div:nth-of-type(1) > div {
+	position: relative;
+	background: white;
+	height: 33rem;
+	width: 30rem;
+	filter: drop-shadow(0px 2px 10px rgba(0, 0, 0, 0.07));
+	border-radius: 0.5rem;
+	display: flex;
+	flex-direction: column;
+}
+section[class=watdoenwe] > div:nth-of-type(1) > div > div:nth-of-type(2) {
+	position: absolute;
+	bottom: 0;
+	height: fit-content;
+	padding: 2rem;
+}
+section[class=watdoenwe] > div:nth-of-type(1) > div > div:nth-of-type(2) > p:nth-of-type(1) {
+	color: #393939;
+	font-size: 1.5rem;
+	font-weight: bold;
+	margin-bottom: 1rem;
+}
+section[class=watdoenwe] > div:nth-of-type(1) > div > div:nth-of-type(2) > p:nth-of-type(2) {
+	color: #425466;
+	line-height: 2rem;
+	font-weight: 300;
+}
+section[class=watdoenwe] > div:nth-of-type(2) {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-content: flex-end;
+	gap: 2rem;
+}
+section[class=watdoenwe] > div:nth-of-type(2) > p:nth-of-type(1) {
+	color: #393939;
+	mix-blend-mode: color-burn;
+	font-weight: bold;
+	font-size: 5rem;
+}
+section[class=watdoenwe] > div:nth-of-type(2) > p:nth-of-type(2) {
+	color: #425466;
+	font-weight: 300;
+	line-height: 2rem;
+	z-index: -10;
+}
+section[class=contact] {
+	display: grid;
+	align-items: start;
+	grid-template-columns: 1fr 1fr;
+	gap: 2rem;
+}
+section[class=contact] > div:nth-of-type(1) > p:nth-of-type(1) {
+	color: #393939;
+	mix-blend-mode: color-burn;
+	font-weight: bold;
+	font-size: 5rem;
+}
+section[class=contact] > div:nth-of-type(1) > p:nth-of-type(2) {
+	color: #425466;
+	font-weight: 300;
+	line-height: 2rem;
+}
+section[class=contact] > div:nth-of-type(2) {
+	position: relative;
+	height: 100%;
+}
+section[class=contact] > div:nth-of-type(2) > form {
+	background: white;
+	filter: drop-shadow(0px 2px 10px rgba(0, 0, 0, 0.07));
+	padding: 4rem;
+	border-radius: 0.5rem;
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-content: center;
+	justify-content: flex-start;
+	gap: 1rem;
+}
+section[class=contact] > div:nth-of-type(2) > form > input {
+	color: rgb(60, 66, 87);
+	box-shadow: rgba(60, 66, 87, 0.16) 0px 0px 0px 1px;
+	border-radius: 0.25rem;
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	min-height: 2.75rem;
+	transition: all 0.2s;
+	width: 100%;
+}
+section[class=contact] > div:nth-of-type(2) > form > input:focus {
+	box-shadow: rgba(86, 166, 76, 0.36) 0px 0px 0px 0.25rem, rgba(60, 66, 87, 0.16) 0px 0px 0px 1px;
+}
+section[class=contact] > div:nth-of-type(2) > form > button {
+	background: var(--primary);
+	color: white;
+	border-radius: 0.25rem;
+	min-height: 2.75rem;
+	font-size: 1rem;
+	line-height: 1.75rem;
+	transition: all 0.2s;
+}
+section[class=contact] > div:nth-of-type(2) > form > button:hover {
+	cursor: pointer;
+	filter: brightness(1.1);
+	box-shadow: rgba(86, 166, 76, 0.36) 0px 0px 0px 4px, rgba(60, 66, 87, 0.16) 0px 0px 0px 1px;
+}
