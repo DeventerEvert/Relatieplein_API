@@ -3,10 +3,17 @@
 		private static ?Database $instance = null;
 		private PDO $connection;
 		private function __construct() {
+			// localhost voor db
 			$host = "localhost";
 			$username = "root";
 			$password = "";
 			$dbname = "relatieplein";
+
+			// online server voor db
+			// $host = "localhost";
+			// $username = "klas4s21_519546";
+			// $password = "greengiants1";
+			// $dbname = "klas4s21_519546";
 			try {
 				$dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
 				$this->connection = new PDO($dsn, $username, $password, [

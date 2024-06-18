@@ -1,15 +1,6 @@
 <?php
 require_once '../config/DBconfig.php';
 
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Expose-Headers: X-Custom-Header");
-header("Access-Control-Max-Age: 86400");
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    exit(0);
-}
 class API
 {
     private $conn;
@@ -420,7 +411,7 @@ class API
         $email,
         $hashedPassword,
         $gender,
-        $selectedGenderPreferences,
+        $selectedGenderPreference,
         $description,
         $fun_fact,
         $province,
@@ -433,16 +424,13 @@ class API
         $occupation,
         $green_flag,
         $red_flag,
-        $selectedLookingFors,
+        $selectedLookingFor,
         $image_file_path,
         $image_file_name,
         $image_file_type
     ) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
-                // Begin transaction
-                $this->conn->beginTransaction();
-    
                 // Insert into `user` table
                 $stmtUser = $this->conn->prepare('INSERT INTO user (firstname, lastname, birthdate, email, password, gender) VALUES (?, ?, ?, ?, ?, ?)');
                 $stmtUser->bindParam(1, $first_name, PDO::PARAM_STR);
@@ -452,20 +440,19 @@ class API
                 $stmtUser->bindParam(5, $hashedPassword, PDO::PARAM_STR);
                 $stmtUser->bindParam(6, $gender, PDO::PARAM_STR);
                 $stmtUser->execute();
-    
+
                 // Check if user insert was successful
                 if ($stmtUser->rowCount() === 0) {
-                    $this->conn->rollBack();
                     $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add onboarding']);
                     return;
                 }
-    
+
                 // Get the last inserted user_id
                 $user_id = $this->conn->lastInsertId();
                 $this->last_inserted_id = $user_id;
-    
+
                 // Insert into `profile` table
-                $stmtProfile = $this->conn->prepare('INSERT INTO profile (user_id, description, fun_fact, province, fav_color, fav_animal, fav_season, emoji_description, starsign, hobby_description, occupation, green_flag, red_flag) 
+                $stmtProfile = $this->conn->prepare('INSERT INTO profile (`user_id`, `description`, `fun_fact`, `province`, `fav_color`, `fav_animal`, `fav_season`, `emoji_description`, `starsign`, `hobby_description`, `occupation`, `green_flag`, `red_flag`) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
                 $stmtProfile->bindParam(1, $this->last_inserted_id, PDO::PARAM_INT);
                 $stmtProfile->bindParam(2, $description, PDO::PARAM_STR);
@@ -481,82 +468,70 @@ class API
                 $stmtProfile->bindParam(12, $green_flag, PDO::PARAM_STR);
                 $stmtProfile->bindParam(13, $red_flag, PDO::PARAM_STR);
                 $stmtProfile->execute();
-    
-                // Check if profile insert was successful
+                // Check if user insert was successful
                 if ($stmtProfile->rowCount() === 0) {
-                    $this->conn->rollBack();
                     $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add onboarding']);
                     return;
                 }
-    
-                // Initialize preferences
-                $male = $female = $non_binary = $male_to_female = $female_to_male = $other = 0;
-    
-                // Set preferences based on input
-                foreach ($selectedGenderPreferences as $preference) {
-                    switch ($preference) {
-                        case 'male':
-                            $male = 1;
-                            break;
-                        case 'female':
-                            $female = 1;
-                            break;
-                        case 'non-binary':
-                            $non_binary = 1;
-                            break;
-                        case 'male_to_female':
-                            $male_to_female = 1;
-                            break;
-                        case 'female_to_male':
-                            $female_to_male = 1;
-                            break;
-                        case 'other':
-                            $other = 1;
-                            break;
-                    }
+
+
+                //Insert into sexual preference table
+                // Determine column name for sexual_preference table
+                switch ($selectedGenderPreference) {
+                    case 'male':
+                        $columnToUpdate = 'male';
+                        break;
+                    case 'female':
+                        $columnToUpdate = 'female';
+                        break;
+                    case 'non-binary':
+                        $columnToUpdate = 'non_binary';
+                        break;
+                    case 'male_to_female':
+                        $columnToUpdate = 'male_to_female';
+                        break;
+                    case 'female_to_male':
+                        $columnToUpdate = 'female_to_male';
+                        break;
+                    case 'other':
+                        $columnToUpdate = 'other';
+                        break;
+                    default:
+                        // Handle invalid input if necessary
+                        $this->sendResponse(400, ['status' => 400, 'message' => 'Invalid gender preference']);
+                        return;
                 }
-    
+
                 // Insert into `sexual_preference` table
-                $stmtPreference = $this->conn->prepare('INSERT INTO sexual_preference (profile_id, male, female, `non-binary`, male_to_female, female_to_male, other) VALUES (?, ?, ?, ?, ?, ?, ?)');
+                $stmtPreference = $this->conn->prepare("INSERT INTO sexual_preference (profile_id, $columnToUpdate) VALUES (?, 1)");
                 $stmtPreference->bindParam(1, $this->last_inserted_id, PDO::PARAM_INT);
-                $stmtPreference->bindParam(2, $male, PDO::PARAM_INT);
-                $stmtPreference->bindParam(3, $female, PDO::PARAM_INT);
-                $stmtPreference->bindParam(4, $non_binary, PDO::PARAM_INT);
-                $stmtPreference->bindParam(5, $male_to_female, PDO::PARAM_INT);
-                $stmtPreference->bindParam(6, $female_to_male, PDO::PARAM_INT);
-                $stmtPreference->bindParam(7, $other, PDO::PARAM_INT);
                 $stmtPreference->execute();
-    
-                // Initialize looking for preferences
-                $relationship = $fwb = $pen_pal = $friends = 0;
-    
-                // Set looking for preferences based on input
-                foreach ($selectedLookingFors as $lookingFor) {
-                    switch ($lookingFor) {
-                        case 'relationship':
-                            $relationship = 1;
-                            break;
-                        case 'fwb':
-                            $fwb = 1;
-                            break;
-                        case 'pen-pal':
-                            $pen_pal = 1;
-                            break;
-                        case 'friends':
-                            $friends = 1;
-                            break;
-                    }
+
+
+                switch ($selectedLookingFor) {
+                    case 'relationship':
+                        $LFcolumnToUpdate = 'relationship';
+                        break;
+                    case 'fwb':
+                        $LFcolumnToUpdate = 'fwb';
+                        break;
+                    case 'pen-pal':
+                        $LFcolumnToUpdate = 'pen_pal';
+                        break;
+                    case 'friends':
+                        $LFcolumnToUpdate = 'friends';
+                        break;
+                    default:
+                        // Handle invalid input if necessary
+                        $this->sendResponse(400, ['status' => 400, 'message' => 'Invalid looking for preference']);
+                        return;
                 }
     
                 // Insert into `looking_for` table
-                $stmtLookingFor = $this->conn->prepare('INSERT INTO looking_for (profile_id, relationship, fwb, pen_pal, friends) VALUES (?, ?, ?, ?, ?)');
+                $stmtLookingFor = $this->conn->prepare("INSERT INTO looking_for (profile_id, $LFcolumnToUpdate) VALUES (?, 1)");
                 $stmtLookingFor->bindParam(1, $this->last_inserted_id, PDO::PARAM_INT);
-                $stmtLookingFor->bindParam(2, $relationship, PDO::PARAM_INT);
-                $stmtLookingFor->bindParam(3, $fwb, PDO::PARAM_INT);
-                $stmtLookingFor->bindParam(4, $pen_pal, PDO::PARAM_INT);
-                $stmtLookingFor->bindParam(5, $friends, PDO::PARAM_INT);
                 $stmtLookingFor->execute();
-    
+
                 // Insert into `image` table
                 $stmtImage = $this->conn->prepare('INSERT INTO image (Profile_User_idUser, image_file_path, image_file_name, image_file_type) VALUES (?, ?, ?, ?)');
                 $stmtImage->bindParam(1, $this->last_inserted_id, PDO::PARAM_INT);
@@ -564,15 +539,11 @@ class API
                 $stmtImage->bindParam(3, $image_file_name, PDO::PARAM_STR);
                 $stmtImage->bindParam(4, $image_file_type, PDO::PARAM_STR);
                 $stmtImage->execute();
-    
-                // Commit transaction
-                $this->conn->commit();
-    
+
                 // Send success response
-                $this->sendResponse(201, ['status' => 201, 'message' => 'Onboarding successfully added', 'Last inserted id:' => $this->last_inserted_id]);
+                $this->sendResponse(201, ['status' => 201, 'message' => 'Onboarding successfully added']);
             } catch (Exception $e) {
                 // Rollback the transaction on failure
-                $this->conn->rollBack();
                 $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add onboarding: ' . $e->getMessage()]);
             }
         } else {
@@ -580,6 +551,7 @@ class API
             $this->sendResponse(400, ['status' => 400, 'message' => 'Invalid request method']);
         }
     }
+
 
 
 

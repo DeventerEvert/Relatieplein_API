@@ -1,18 +1,11 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Expose-Headers: X-Custom-Header");
-header("Access-Control-Max-Age: 86400");
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    exit(0);
-}
+
 
 require '../config/DBconfig.php';
 require '../handlers/retrieveAPI.php';
 
 header('Content-Type: application/json');
+
 
 //Underneath values refer to registerSwipe function of retrieveAPI.php and insertIntoDatabase function of retrieveAPI.php
 $input = json_decode(file_get_contents('php://input'), true);
@@ -239,11 +232,12 @@ if (
 
 if (
     isset($input['firstNameOnboarding']) && isset($input['lastNameOnboarding']) && isset($input['birthdayOnboarding']) && isset($input['emailOnboarding']) &&
-    isset($input['passwordOnboarding']) && isset($input['genderOnboarding']) && isset($input['selectedGenderPreferences']) && isset($input['description']) &&
+    isset($input['passwordOnboarding']) && isset($input['genderOnboarding']) && isset($input['selectedGenderPreference']) && isset($input['description']) &&
     isset($input['fun_fact']) && isset($input['province']) && isset($input['fav_color']) && isset($input['fav_animal']) && isset($input['fav_season']) &&
     isset($input['emoji_description']) && isset($input['starsign']) && isset($input['hobby_description']) && isset($input['occupation']) && isset($input['green_flag'])
-    && isset($input['red_flag']) && isset($input['selectedLookingFors']) && isset($input['imgFileName']) && isset($input['imgFilePath']) && isset($input['imgFileType'])
-) {
+    && isset($input['red_flag']) && isset($input['selectedLookingFor']) && isset($input['imgFileName']) && isset($input['imgFilePath']) && isset($input['imgFileType']))
+     {
+
     // For onboarding user
     $first_name = $input['firstNameOnboarding'];
     $last_name = $input['lastNameOnboarding'];
@@ -253,7 +247,8 @@ if (
     $gender = $input['genderOnboarding'];
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-    // For onboarding profile
+
+    //For onboarding profile
     $description = $input['description'];
     $fun_fact = $input['fun_fact'];
     $province = $input['province'];
@@ -268,10 +263,10 @@ if (
     $red_flag = $input['red_flag'];
 
     // For onboarding sexPref
-    $selectedGenderPreferences = $input['selectedGenderPreferences'];
+    $selectedGenderPreference = $input['selectedGenderPreference'];
 
     // For onboarding looking for
-    $selectedLookingFors = $input['selectedLookingFors'];
+    $selectedLookingFor = $input['selectedLookingFor'];
 
     // For onboarding image
     $image_file_name = $input['imgFileName'];
@@ -285,7 +280,7 @@ if (
         $email,
         $hashedPassword,
         $gender,
-        $selectedGenderPreferences,
+        $selectedGenderPreference,
         $description,
         $fun_fact,
         $province,
@@ -298,7 +293,7 @@ if (
         $occupation,
         $green_flag,
         $red_flag,
-        $selectedLookingFors,
+        $selectedLookingFor,
         $image_file_path,
         $image_file_name,
         $image_file_type
