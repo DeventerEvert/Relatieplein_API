@@ -413,6 +413,7 @@ class API
         }
     }
 
+    //New function for onboarding as by David
     public function insertOnboardingValues(
         $first_name,
         $last_name,
@@ -440,10 +441,8 @@ class API
     ) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
-                // Begin transaction
                 $this->conn->beginTransaction();
     
-                // Insert into `user` table
                 $stmtUser = $this->conn->prepare('INSERT INTO user (firstname, lastname, birthdate, email, password, gender) VALUES (?, ?, ?, ?, ?, ?)');
                 $stmtUser->bindParam(1, $first_name, PDO::PARAM_STR);
                 $stmtUser->bindParam(2, $last_name, PDO::PARAM_STR);
@@ -453,18 +452,15 @@ class API
                 $stmtUser->bindParam(6, $gender, PDO::PARAM_STR);
                 $stmtUser->execute();
     
-                // Check if user insert was successful
                 if ($stmtUser->rowCount() === 0) {
                     $this->conn->rollBack();
                     $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add onboarding']);
                     return;
                 }
     
-                // Get the last inserted user_id
                 $user_id = $this->conn->lastInsertId();
                 $this->last_inserted_id = $user_id;
     
-                // Insert into `profile` table
                 $stmtProfile = $this->conn->prepare('INSERT INTO profile (user_id, description, fun_fact, province, fav_color, fav_animal, fav_season, emoji_description, starsign, hobby_description, occupation, green_flag, red_flag) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
                 $stmtProfile->bindParam(1, $this->last_inserted_id, PDO::PARAM_INT);
@@ -482,17 +478,14 @@ class API
                 $stmtProfile->bindParam(13, $red_flag, PDO::PARAM_STR);
                 $stmtProfile->execute();
     
-                // Check if profile insert was successful
                 if ($stmtProfile->rowCount() === 0) {
                     $this->conn->rollBack();
                     $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add onboarding']);
                     return;
                 }
     
-                // Initialize preferences
                 $male = $female = $non_binary = $male_to_female = $female_to_male = $other = 0;
     
-                // Set preferences based on input
                 foreach ($selectedGenderPreferences as $preference) {
                     switch ($preference) {
                         case 'male':
@@ -527,10 +520,8 @@ class API
                 $stmtPreference->bindParam(7, $other, PDO::PARAM_INT);
                 $stmtPreference->execute();
     
-                // Initialize looking for preferences
                 $relationship = $fwb = $pen_pal = $friends = 0;
     
-                // Set looking for preferences based on input
                 foreach ($selectedLookingFors as $lookingFor) {
                     switch ($lookingFor) {
                         case 'relationship':
@@ -564,19 +555,14 @@ class API
                 $stmtImage->bindParam(3, $image_file_name, PDO::PARAM_STR);
                 $stmtImage->bindParam(4, $image_file_type, PDO::PARAM_STR);
                 $stmtImage->execute();
-    
-                // Commit transaction
+
                 $this->conn->commit();
-    
-                // Send success response
                 $this->sendResponse(201, ['status' => 201, 'message' => 'Onboarding successfully added', 'Last inserted id:' => $this->last_inserted_id]);
             } catch (Exception $e) {
-                // Rollback the transaction on failure
                 $this->conn->rollBack();
                 $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add onboarding: ' . $e->getMessage()]);
             }
         } else {
-            // Handle invalid request method
             $this->sendResponse(400, ['status' => 400, 'message' => 'Invalid request method']);
         }
     }
@@ -589,14 +575,10 @@ class API
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
-                // Begin transaction
                 $this->conn->beginTransaction();
-
-                // Prepare the SQL query
                 $stmt = $this->conn->prepare('INSERT INTO profile (`user_id`, `description`, `fun_fact`, `province`, `fav_color`, `fav_animal`, `fav_season`, `emoji_description`, `starsign`, `hobby_description`, `occupation`, `green_flag`, `red_flag`) 
                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-                // Bind parameters
                 $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
                 $stmt->bindParam(2, $description, PDO::PARAM_STR);
                 $stmt->bindParam(3, $fun_fact, PDO::PARAM_STR);
@@ -610,20 +592,118 @@ class API
                 $stmt->bindParam(11, $occupation, PDO::PARAM_STR);
                 $stmt->bindParam(12, $green_flag, PDO::PARAM_STR);
                 $stmt->bindParam(13, $red_flag, PDO::PARAM_STR);
-                // Execute the statement
                 $stmt->execute();
 
-                // Commit transaction if successful
                 $this->conn->commit();
 
                 $this->sendResponse(201, ['status' => 201, 'message' => 'Profiel succesvol toegevoegd']);
             } catch (Exception $e) {
-                // Rollback transaction on failure
                 $this->conn->rollBack();
                 $this->sendResponse(500, ['status' => 500, 'message' => 'Kon profiel niet toevoegen: ' . $e->getMessage()]);
             }
         }
     }
 
-    //New function for onboarding as by David
+    //Function for editing user
+    public function editUser($firstname, $lastname, $birthdate, $email, $hashedPassword, $gender, $user_id){
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+            try {
+                $this->conn->beginTransaction();
+                $stmt = $this->conn->prepare('UPDATE user SET firstname = ?, lastname = ?, birthdate = ?, email = ?, password = ?, gender = ?, changed_at = NOW() WHERE user_id = ?;');
+                $stmt->bindParam(1, $firstname, PDO::PARAM_STR);
+                $stmt->bindParam(2, $lastname, PDO::PARAM_STR);
+                $stmt->bindParam(3, $birthdate, PDO::PARAM_STR);
+                $stmt->bindParam(4, $email, PDO::PARAM_STR);
+                $stmt->bindParam(5, $hashedPassword, PDO::PARAM_STR);
+                $stmt->bindParam(6, $gender, PDO::PARAM_STR);
+                $stmt->bindParam(7, $user_id, PDO::PARAM_STR);
+                $stmt->execute();
+    
+                $this->conn->commit(); // Commit the transaction after successful delete
+    
+                $this->sendResponse(200, ['status' => 200, 'message' => 'user geupdate']);
+            } catch (Exception $e) {
+                $this->conn->rollBack();
+                $this->sendResponse(500, ['status' => 500, 'message' => 'Kon user niet updaten: ' . $e->getMessage()]);
+            }
+        } else {
+            $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
+        }
+    }
+    //Function for editing profiles
+    public function editProfile($description, $fun_fact, $province, $fav_color, $fav_animal, $fav_season, $emoji_description, $starsign, $hobby_description, $occupation, $green_flag, $red_flag, $user_id){
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+            try {
+                $this->conn->beginTransaction();
+                $stmt = $this->conn->prepare('UPDATE profile SET `description` = ?, fun_fact = ?, province = ?, fav_color = ?, fav_animal = ?, fav_season = ?, emoji_description = ?,
+                starsign = ?, hobby_description = ?, occupation = ?, green_flag = ?, red_flag = ?  WHERE user_id = ?;');
+                $stmt->bindParam(1, $description, PDO::PARAM_INT);
+                $stmt->bindParam(2, $fun_fact, PDO::PARAM_STR);
+                $stmt->bindParam(3, $province, PDO::PARAM_STR);
+                $stmt->bindParam(4, $fav_color, PDO::PARAM_STR);
+                $stmt->bindParam(5, $fav_animal, PDO::PARAM_STR);
+                $stmt->bindParam(6, $fav_season, PDO::PARAM_STR);
+                $stmt->bindParam(7, $emoji_description, PDO::PARAM_STR);
+                $stmt->bindParam(8, $starsign, PDO::PARAM_STR);
+                $stmt->bindParam(9, $hobby_description, PDO::PARAM_STR);
+                $stmt->bindParam(10, $occupation, PDO::PARAM_STR);
+                $stmt->bindParam(11, $green_flag, PDO::PARAM_STR);
+                $stmt->bindParam(12, $red_flag, PDO::PARAM_STR);
+                $stmt->bindParam(13, $user_id, PDO::PARAM_STR);
+                $stmt->execute();
+    
+                $this->conn->commit(); // Commit the transaction after successful delete
+    
+                $this->sendResponse(200, ['status' => 200, 'message' => 'Profiel geupdate']);
+            } catch (Exception $e) {
+                $this->conn->rollBack();
+                $this->sendResponse(500, ['status' => 500, 'message' => 'Kon profiel niet updaten: ' . $e->getMessage()]);
+            }
+        } else {
+            $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
+        }
+    }
+    //Function for uploading into image
+    public function uploadImage($Profile_User_idUser, $image_path, $image_name, $image_type){
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $this->conn->beginTransaction();
+                $stmt = $this->conn->prepare('INSERT INTO `image` (Profile_User_idUser, image_file_path, image_file_name, image_file_type) VALUES (?, ?, ?, ?)');
+                $stmt->bindParam(1, $Profile_User_idUser, PDO::PARAM_INT);
+                $stmt->bindParam(2, $image_path, PDO::PARAM_STR);
+                $stmt->bindParam(3, $image_name, PDO::PARAM_STR);
+                $stmt->bindParam(4, $image_type, PDO::PARAM_STR);
+                $stmt->execute();
+    
+                $this->conn->commit(); // Commit the transaction after successful delete
+    
+                $this->sendResponse(200, ['status' => 200, 'message' => 'Image geupload']);
+            } catch (Exception $e) {
+                $this->conn->rollBack();
+                $this->sendResponse(500, ['status' => 500, 'message' => 'Kon image niet uploaden: ' . $e->getMessage()]);
+            }
+        } else {
+            $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
+        }
+    }
+    //Function for deleting image
+    public function deleteImage($image_id) {
+        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+            try {
+                $this->conn->beginTransaction();
+                $stmt = $this->conn->prepare('DELETE FROM `image` WHERE image_id = ?');
+                $stmt->bindParam(1, $image_id, PDO::PARAM_INT);
+                $stmt->execute();
+    
+                $this->conn->commit(); // Commit the transaction after successful delete
+    
+                $this->sendResponse(200, ['status' => 200, 'message' => 'Image verwijderd']);
+            } catch (Exception $e) {
+                $this->conn->rollBack();
+                $this->sendResponse(500, ['status' => 500, 'message' => 'Kon image niet verwijderen: ' . $e->getMessage()]);
+            }
+        } else {
+            $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
+        }
+    }
 }

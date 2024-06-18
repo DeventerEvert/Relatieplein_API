@@ -305,4 +305,58 @@ if (
     );
 }
 
-?>
+//Voor delete image
+if (isset($input['image_id'])) {
+    $image_id = $input['image_id']; // Missing semicolon added
+
+    $response = $swipeService->deleteImage($image_id);
+}
+
+//Voor upload image
+if (isset($input['prof_user_id']) && isset($input['img_file_path']) && isset($input['img_file_name']) && isset($input['img_file_type']))
+{
+    $Profile_User_idUser = $input['prof_user_id'];
+    $image_path = $input['img_file_path'];
+    $image_name = $input['img_file_name'];
+    $image_type = $input['img_file_type'];
+
+    $response = $swipeService->uploadImage($Profile_User_idUser, $image_path, $image_name, $image_type);
+}
+
+//Voor edit user
+if (isset($input['editFirstname']) && isset($input['editLastname']) && isset($input['editBirthdate']) && isset($input['editEmail']) &&
+    isset($input['editPassword']) && isset($input['editGender'])  && isset($input['editUser_id']))
+    {
+    $firstname = $input['editFirstname'];
+    $lastname = $input['editLastname'];
+    $birthdate = $input['editBirthdate'];
+    $email = $input['editEmail'];
+    $password = $input['editPassword'];
+    $gender = $input['editGender'];
+    $user_id = $input['editUser_id'];
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+    $response = $swipeService->editUser($firstname, $lastname, $birthdate, $email, $hashedPassword, $gender, $user_id);
+    }
+
+
+if(isset($input['editDescription']) &&isset($input['editFun_fact']) && isset($input['editProvince']) && isset($input['editFav_color']) && isset($input['editFav_animal']) && isset($input['editFav_season']) &&
+isset($input['editEmoji_description']) && isset($input['editStarsign']) && isset($input['editHobby_description']) && isset($input['editOccupation']) && isset($input['editGreen_flag']) && isset($input['editRed_flag']) 
+&& isset($input['editProfile_id']))
+{
+    $description = $input['editDescription'];
+    $fun_fact = $input['editFun_fact'];
+    $province = $input['editProvince'];
+    $fav_color = $input['editFav_color'];
+    $fav_animal = $input['editFav_animal'];
+    $fav_season = $input['editFav_season'];
+    $emoji_description = $input['editEmoji_description'];
+    $starsign = $input['editStarsign'];
+    $hobby_description = $input['editHobby_description'];
+    $occupation = $input['editOccupation'];
+    $green_flag = $input['editGreen_flag'];
+    $red_flag = $input['editRed_flag'];
+    $user_id = $input['editProfile_id'];
+
+    $response = $swipeService->editProfile($description, $fun_fact, $province, $fav_color, $fav_animal, $fav_season, $emoji_description, $starsign, $hobby_description, $occupation, $green_flag, $red_flag, $user_id);
+}
