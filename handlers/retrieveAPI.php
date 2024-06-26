@@ -329,7 +329,7 @@ class API
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = json_decode(file_get_contents('php://input'), true);
-
+    
             if ($this->isValidInput($input)) {
                 $firstName = $input['firstName'];
                 $lastName = $input['lastName'];
@@ -339,14 +339,14 @@ class API
                 $gender = $input['gender'];
                 $active = $input['active'];
                 $ghost_mode = $input['ghost_mode'];
-
+    
                 // Hash the password before storing
                 $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
+    
                 try {
                     // Begin transaction
                     $this->conn->beginTransaction();
-
+    
                     // Prepare SQL statement
                     $stmt = $this->conn->prepare('INSERT INTO user (firstname, lastname, birthdate, email, password, gender, active, ghost_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
                     $stmt->bindParam(1, $firstName, PDO::PARAM_STR);
@@ -358,10 +358,15 @@ class API
                     $stmt->bindParam(7, $active, PDO::PARAM_BOOL);
                     $stmt->bindParam(8, $ghost_mode, PDO::PARAM_BOOL);
                     $stmt->execute();
-
+    
+                    // Get the last inserted ID
+                    $lastInsertedID = $this->conn->lastInsertId();
+    
                     // Commit transaction
                     $this->conn->commit();
-                    $this->sendResponse(201, ['status' => 201, 'message' => 'Register successful']);
+    
+                    // Send response
+                    $this->sendResponse(201, ['status' => 201, 'message' => 'Register successful', 'userId' => $lastInsertedID]);
                 } catch (Exception $e) {
                     // Rollback transaction
                     $this->conn->rollBack();
@@ -374,6 +379,7 @@ class API
             $this->sendResponse(405, ['status' => 405, 'message' => 'Method not allowed']);
         }
     }
+    
 
     private function isValidInput($input)
     {
@@ -605,18 +611,20 @@ class API
     }
 
     //Function for editing user
-    public function editUser($firstname, $lastname, $birthdate, $email, $hashedPassword, $gender, $user_id){
+    public function editUser($firstname, $lastname, $birthdate, $email, $hashedPassword, $gender, $user_id, $active, $ghost_mode){
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             try {
                 $this->conn->beginTransaction();
-                $stmt = $this->conn->prepare('UPDATE user SET firstname = ?, lastname = ?, birthdate = ?, email = ?, password = ?, gender = ?, changed_at = NOW() WHERE user_id = ?;');
+                $stmt = $this->conn->prepare('UPDATE user SET firstname = ?, lastname = ?, birthdate = ?, email = ?, password = ?, gender = ?, active = ?, ghost_mode = ?, changed_at = NOW() WHERE user_id = ?;');
                 $stmt->bindParam(1, $firstname, PDO::PARAM_STR);
                 $stmt->bindParam(2, $lastname, PDO::PARAM_STR);
                 $stmt->bindParam(3, $birthdate, PDO::PARAM_STR);
                 $stmt->bindParam(4, $email, PDO::PARAM_STR);
                 $stmt->bindParam(5, $hashedPassword, PDO::PARAM_STR);
                 $stmt->bindParam(6, $gender, PDO::PARAM_STR);
-                $stmt->bindParam(7, $user_id, PDO::PARAM_STR);
+                $stmt->bindParam(7, $active, PDO::PARAM_INT);
+                $stmt->bindParam(8, $ghost_mode, PDO::PARAM_INT);
+                $stmt->bindParam(9, $user_id, PDO::PARAM_INT);
                 $stmt->execute();
     
                 $this->conn->commit(); // Commit the transaction after successful delete
@@ -664,10 +672,19 @@ class API
         }
     }
     //Function for uploading into image
-    public function uploadImage($Profile_User_idUser, $image_path, $image_name, $image_type){
+    public function uploadImage($Profile_User_idUser, $image_name, $image_type){
+        // Define the server path where images will be stored
+        $server_path = 'D:\RocMN\relatieplein\relatieplein\app\Resources\Images\\';
+    
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
+                // Set the complete path where the image will be stored
+                $image_path = $server_path . $image_name;
+    
+                // Begin transaction
                 $this->conn->beginTransaction();
+    
+                // Prepare and execute the SQL statement
                 $stmt = $this->conn->prepare('INSERT INTO `image` (Profile_User_idUser, image_file_path, image_file_name, image_file_type) VALUES (?, ?, ?, ?)');
                 $stmt->bindParam(1, $Profile_User_idUser, PDO::PARAM_INT);
                 $stmt->bindParam(2, $image_path, PDO::PARAM_STR);
@@ -675,17 +692,23 @@ class API
                 $stmt->bindParam(4, $image_type, PDO::PARAM_STR);
                 $stmt->execute();
     
-                $this->conn->commit(); // Commit the transaction after successful delete
+                // Commit the transaction after successful insertion
+                $this->conn->commit();
     
-                $this->sendResponse(200, ['status' => 200, 'message' => 'Image geupload']);
+                // Send a success response
+                $this->sendResponse(200, ['status' => 200, 'message' => 'Image uploaded']);
             } catch (Exception $e) {
+                // Roll back the transaction in case of error
                 $this->conn->rollBack();
-                $this->sendResponse(500, ['status' => 500, 'message' => 'Kon image niet uploaden: ' . $e->getMessage()]);
+                // Send an error response
+                $this->sendResponse(500, ['status' => 500, 'message' => 'Could not upload image: ' . $e->getMessage()]);
             }
         } else {
+            // Send a response for method not allowed
             $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
         }
     }
+    
     //Function for deleting image
     public function deleteImage($image_id) {
         if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
@@ -701,6 +724,26 @@ class API
             } catch (Exception $e) {
                 $this->conn->rollBack();
                 $this->sendResponse(500, ['status' => 500, 'message' => 'Kon image niet verwijderen: ' . $e->getMessage()]);
+            }
+        } else {
+            $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
+        }
+    }
+
+    public function deleteUser($user_id){
+        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+            try {
+                $this->conn->beginTransaction();
+                $stmt = $this->conn->prepare('DELETE FROM `user` WHERE user_id = ?');
+                $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
+                $stmt->execute();
+    
+                $this->conn->commit(); // Commit the transaction after successful delete
+    
+                $this->sendResponse(200, ['status' => 200, 'message' => 'User verwijderd']);
+            } catch (Exception $e) {
+                $this->conn->rollBack();
+                $this->sendResponse(500, ['status' => 500, 'message' => 'Kon user niet verwijderen: ' . $e->getMessage()]);
             }
         } else {
             $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);

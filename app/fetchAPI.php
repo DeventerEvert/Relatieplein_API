@@ -312,20 +312,26 @@ if (isset($input['image_id'])) {
     $response = $swipeService->deleteImage($image_id);
 }
 
+//Voor delete user
+if (isset($input['deleteUser_id'])) {
+    $user_id = $input['deleteUser_id']; // Missing semicolon added
+
+    $response = $swipeService->deleteUser($user_id);
+}
+
 //Voor upload image
-if (isset($input['prof_user_id']) && isset($input['img_file_path']) && isset($input['img_file_name']) && isset($input['img_file_type']))
+if (isset($input['prof_user_id']) && isset($input['img_file_name']) && isset($input['img_file_type']))
 {
     $Profile_User_idUser = $input['prof_user_id'];
-    $image_path = $input['img_file_path'];
+    // $image_path = $input['img_file_path'];
     $image_name = $input['img_file_name'];
     $image_type = $input['img_file_type'];
 
-    $response = $swipeService->uploadImage($Profile_User_idUser, $image_path, $image_name, $image_type);
+    $response = $swipeService->uploadImage($Profile_User_idUser, $image_name, $image_type);
 }
-
 //Voor edit user
 if (isset($input['editFirstname']) && isset($input['editLastname']) && isset($input['editBirthdate']) && isset($input['editEmail']) &&
-    isset($input['editPassword']) && isset($input['editGender'])  && isset($input['editUser_id']))
+    isset($input['editPassword']) && isset($input['editGender'])  && isset($input['editUser_id']) && isset($input['editActive'])  && isset($input['editGhost']))
     {
     $firstname = $input['editFirstname'];
     $lastname = $input['editLastname'];
@@ -334,9 +340,11 @@ if (isset($input['editFirstname']) && isset($input['editLastname']) && isset($in
     $password = $input['editPassword'];
     $gender = $input['editGender'];
     $user_id = $input['editUser_id'];
+    $active = $input['editActive'];
+    $ghost_mode = $input['editGhost'];
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-    $response = $swipeService->editUser($firstname, $lastname, $birthdate, $email, $hashedPassword, $gender, $user_id);
+    $response = $swipeService->editUser($firstname, $lastname, $birthdate, $email, $hashedPassword, $gender, $user_id, $active, $ghost_mode);
     }
 
 
