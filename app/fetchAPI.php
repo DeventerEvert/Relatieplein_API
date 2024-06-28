@@ -34,18 +34,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $response = $swipeService->registerSwipe($userId, $swipedUserId, $type);
         http_response_code($response['status']);
         echo json_encode(['message' => $response['message']]);
-    } elseif (!is_null($match_id) && !is_null($sender_id) && !is_null($receiver_id) && !is_null($message) && !is_null($message_liked)) {
+    } elseif (!is_null($match_id) && !is_null($sender_id) && !is_null($receiver_id) && !is_null($message)) {
         $response = $swipeService->insertMessageIntoDatabase($match_id, $sender_id, $receiver_id, $message, $message_liked);
         http_response_code($response['status']);
         echo json_encode(['message' => $response['message']]);
+    } elseif (isset($input['email']) && isset($input['password'])) {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $response = $swipeService->login($input['email'], $input['password']);
+        echo json_encode($response);
     } else {
         http_response_code(400);
-        // echo json_encode(['message' => 'Invalid input']);
+        echo json_encode(['message' => 'Invalid input']);
     }
 }
-
-
-
 
 //Underneath values all refer to the retrieve functions from fetchAPI.php
 //Voor ophalen van de Image waardes van de database
@@ -201,14 +202,14 @@ if (
 }
 
 //Login functie voor relatieplein.
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
+// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+//     $input = json_decode(file_get_contents('php://input'), true);
 
-    if (isset($input['email']) && isset($input['password'])) {
-        $response = $swipeService->login($input['email'], $input['password']);
-        echo json_encode($response);
-    }
-}
+//     if (isset($input['email']) && isset($input['password'])) {
+//         $response = $swipeService->login($input['email'], $input['password']);
+//         echo json_encode($response);
+//     }
+// }
 
 //Maak profile functie voor relatieplein.
 if (
@@ -320,38 +321,26 @@ if (isset($input['deleteUser_id'])) {
 }
 
 //Voor upload image
-if (isset($input['prof_user_id']) && isset($input['img_file_name']) && isset($input['img_file_type']))
-{
+if (isset($input['prof_user_id']) && isset($input['img_file_name']) && isset($input['img_file_type']) && isset($input['base64_image'])) {
     $Profile_User_idUser = $input['prof_user_id'];
-    // $image_path = $input['img_file_path'];
     $image_name = $input['img_file_name'];
     $image_type = $input['img_file_type'];
+    $base64_image = $input['base64_image'];
 
-    $response = $swipeService->uploadImage($Profile_User_idUser, $image_name, $image_type);
+    // Call the uploadImage method from $swipeService
+    $response = $swipeService->uploadImage($Profile_User_idUser, $base64_image, $image_name, $image_type);
+} else {
+    // Handle case where input parameters are missing
+    // $response = ['status' => 400, 'message' => 'Missing required parameters'];
+    // You may want to send a response or log an error here
 }
-//Voor edit user
-if (isset($input['editFirstname']) && isset($input['editLastname']) && isset($input['editBirthdate']) && isset($input['editEmail']) &&
-    isset($input['editPassword']) && isset($input['editGender'])  && isset($input['editUser_id']) && isset($input['editActive'])  && isset($input['editGhost']))
-    {
-    $firstname = $input['editFirstname'];
-    $lastname = $input['editLastname'];
-    $birthdate = $input['editBirthdate'];
-    $email = $input['editEmail'];
-    $password = $input['editPassword'];
-    $gender = $input['editGender'];
-    $user_id = $input['editUser_id'];
-    $active = $input['editActive'];
-    $ghost_mode = $input['editGhost'];
-    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
-    $response = $swipeService->editUser($firstname, $lastname, $birthdate, $email, $hashedPassword, $gender, $user_id, $active, $ghost_mode);
-    }
 
 
-if(isset($input['editDescription']) &&isset($input['editFun_fact']) && isset($input['editProvince']) && isset($input['editFav_color']) && isset($input['editFav_animal']) && isset($input['editFav_season']) &&
-isset($input['editEmoji_description']) && isset($input['editStarsign']) && isset($input['editHobby_description']) && isset($input['editOccupation']) && isset($input['editGreen_flag']) && isset($input['editRed_flag']) 
-&& isset($input['editProfile_id']))
-{
+if (
+    isset($input['editDescription']) && isset($input['editFun_fact']) && isset($input['editProvince']) && isset($input['editFav_color']) && isset($input['editFav_animal']) && isset($input['editFav_season']) &&
+    isset($input['editEmoji_description']) && isset($input['editStarsign']) && isset($input['editHobby_description']) && isset($input['editOccupation']) && isset($input['editGreen_flag']) && isset($input['editRed_flag'])
+    && isset($input['editProfile_id'])
+) {
     $description = $input['editDescription'];
     $fun_fact = $input['editFun_fact'];
     $province = $input['editProvince'];
@@ -367,4 +356,49 @@ isset($input['editEmoji_description']) && isset($input['editStarsign']) && isset
     $user_id = $input['editProfile_id'];
 
     $response = $swipeService->editProfile($description, $fun_fact, $province, $fav_color, $fav_animal, $fav_season, $emoji_description, $starsign, $hobby_description, $occupation, $green_flag, $red_flag, $user_id);
+}
+
+//Voor edit user
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $fieldsToUpdate = [];
+    $params = [];
+
+    // Check each field and add it to the update array if it is set
+    if (isset($input['editFirstname'])) {
+        $fieldsToUpdate[] = 'firstname = ?';
+        $params[] = $input['editFirstname'];
+    }
+    if (isset($input['editLastname'])) {
+        $fieldsToUpdate[] = 'lastname = ?';
+        $params[] = $input['editLastname'];
+    }
+    if (isset($input['editBirthdate'])) {
+        $fieldsToUpdate[] = 'birthdate = ?';
+        $params[] = $input['editBirthdate'];
+    }
+    if (isset($input['editEmail'])) {
+        $fieldsToUpdate[] = 'email = ?';
+        $params[] = $input['editEmail'];
+    }
+    if (isset($input['editPassword']) && !empty($input['editPassword'])) {
+        $fieldsToUpdate[] = 'password = ?';
+        $params[] = password_hash($input['editPassword'], PASSWORD_DEFAULT);
+    }
+    if (isset($input['editGender'])) {
+        $fieldsToUpdate[] = 'gender = ?';
+        $params[] = $input['editGender'];
+    }
+    if (isset($input['editActive'])) {
+        $fieldsToUpdate[] = 'active = ?';
+        $params[] = $input['editActive'];
+    }
+    if (isset($input['editGhost'])) {
+        $fieldsToUpdate[] = 'ghost_mode = ?';
+        $params[] = $input['editGhost'];
+    }
+
+    // Always include user_id in the params for the WHERE clause
+    $params[] = $input['editUser_id'];
+    $response = $swipeService->editUser($fieldsToUpdate, $params);
 }

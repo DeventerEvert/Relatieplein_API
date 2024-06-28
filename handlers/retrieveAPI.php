@@ -317,7 +317,7 @@ class API
                 return ["success" => true, "user_id" => $user['user_id']];
             } else {
                 http_response_code(401);
-                return ["success" => false];
+                return ["success" => false, 'message' => 'Invalid email or password'];
             }
         } else {
             http_response_code(401);
@@ -325,11 +325,12 @@ class API
         }
     }
 
+
     public function register()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = json_decode(file_get_contents('php://input'), true);
-    
+
             if ($this->isValidInput($input)) {
                 $firstName = $input['firstName'];
                 $lastName = $input['lastName'];
@@ -339,14 +340,14 @@ class API
                 $gender = $input['gender'];
                 $active = $input['active'];
                 $ghost_mode = $input['ghost_mode'];
-    
+
                 // Hash the password before storing
                 $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-    
+
                 try {
                     // Begin transaction
                     $this->conn->beginTransaction();
-    
+
                     // Prepare SQL statement
                     $stmt = $this->conn->prepare('INSERT INTO user (firstname, lastname, birthdate, email, password, gender, active, ghost_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
                     $stmt->bindParam(1, $firstName, PDO::PARAM_STR);
@@ -358,13 +359,13 @@ class API
                     $stmt->bindParam(7, $active, PDO::PARAM_BOOL);
                     $stmt->bindParam(8, $ghost_mode, PDO::PARAM_BOOL);
                     $stmt->execute();
-    
+
                     // Get the last inserted ID
                     $lastInsertedID = $this->conn->lastInsertId();
-    
+
                     // Commit transaction
                     $this->conn->commit();
-    
+
                     // Send response
                     $this->sendResponse(201, ['status' => 201, 'message' => 'Register successful', 'userId' => $lastInsertedID]);
                 } catch (Exception $e) {
@@ -379,7 +380,7 @@ class API
             $this->sendResponse(405, ['status' => 405, 'message' => 'Method not allowed']);
         }
     }
-    
+
 
     private function isValidInput($input)
     {
@@ -389,7 +390,9 @@ class API
     private function sendResponse($statusCode, $response)
     {
         http_response_code($statusCode);
+        header('Content-Type: application/json');
         echo json_encode($response);
+        exit;
     }
 
 
@@ -406,16 +409,16 @@ class API
             $stmt->bindParam(2, $sender_id, PDO::PARAM_INT);
             $stmt->bindParam(3, $receiver_id, PDO::PARAM_INT);
             $stmt->bindParam(4, $message, PDO::PARAM_STR);
-            $stmt->bindParam(5, $message_liked, PDO::PARAM_INT);
+            $stmt->bindParam(5, $message_liked, PDO::PARAM_BOOL);
             $stmt->execute();
 
             // Als er een swipe is gemaakt
             $this->conn->commit();
-            return ['status' => 201, 'message' => 'Message goed aangemaakt'];
+            $this->sendResponse(201, ['status' => 201, 'message' => 'Message goed aangemaakt']);
         } catch (Exception $e) {
             // Als er geen swipe is gemaakt
             $this->conn->rollBack();
-            return ['status' => 500, 'message' => 'Message niet goed aangemaakt: ' . $e->getMessage()];
+            $this->sendResponse(500, ['status' => 500, 'message' => 'Message niet goed aangemaakt: ' . $e->getMessage()]);
         }
     }
 
@@ -448,7 +451,7 @@ class API
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $this->conn->beginTransaction();
-    
+
                 $stmtUser = $this->conn->prepare('INSERT INTO user (firstname, lastname, birthdate, email, password, gender) VALUES (?, ?, ?, ?, ?, ?)');
                 $stmtUser->bindParam(1, $first_name, PDO::PARAM_STR);
                 $stmtUser->bindParam(2, $last_name, PDO::PARAM_STR);
@@ -457,16 +460,16 @@ class API
                 $stmtUser->bindParam(5, $hashedPassword, PDO::PARAM_STR);
                 $stmtUser->bindParam(6, $gender, PDO::PARAM_STR);
                 $stmtUser->execute();
-    
+
                 if ($stmtUser->rowCount() === 0) {
                     $this->conn->rollBack();
                     $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add onboarding']);
                     return;
                 }
-    
+
                 $user_id = $this->conn->lastInsertId();
                 $this->last_inserted_id = $user_id;
-    
+
                 $stmtProfile = $this->conn->prepare('INSERT INTO profile (user_id, description, fun_fact, province, fav_color, fav_animal, fav_season, emoji_description, starsign, hobby_description, occupation, green_flag, red_flag) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
                 $stmtProfile->bindParam(1, $this->last_inserted_id, PDO::PARAM_INT);
@@ -483,15 +486,15 @@ class API
                 $stmtProfile->bindParam(12, $green_flag, PDO::PARAM_STR);
                 $stmtProfile->bindParam(13, $red_flag, PDO::PARAM_STR);
                 $stmtProfile->execute();
-    
+
                 if ($stmtProfile->rowCount() === 0) {
                     $this->conn->rollBack();
                     $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add onboarding']);
                     return;
                 }
-    
+
                 $male = $female = $non_binary = $male_to_female = $female_to_male = $other = 0;
-    
+
                 foreach ($selectedGenderPreferences as $preference) {
                     switch ($preference) {
                         case 'male':
@@ -514,7 +517,7 @@ class API
                             break;
                     }
                 }
-    
+
                 // Insert into `sexual_preference` table
                 $stmtPreference = $this->conn->prepare('INSERT INTO sexual_preference (profile_id, male, female, `non-binary`, male_to_female, female_to_male, other) VALUES (?, ?, ?, ?, ?, ?, ?)');
                 $stmtPreference->bindParam(1, $this->last_inserted_id, PDO::PARAM_INT);
@@ -525,9 +528,9 @@ class API
                 $stmtPreference->bindParam(6, $female_to_male, PDO::PARAM_INT);
                 $stmtPreference->bindParam(7, $other, PDO::PARAM_INT);
                 $stmtPreference->execute();
-    
+
                 $relationship = $fwb = $pen_pal = $friends = 0;
-    
+
                 foreach ($selectedLookingFors as $lookingFor) {
                     switch ($lookingFor) {
                         case 'relationship':
@@ -544,7 +547,7 @@ class API
                             break;
                     }
                 }
-    
+
                 // Insert into `looking_for` table
                 $stmtLookingFor = $this->conn->prepare('INSERT INTO looking_for (profile_id, relationship, fwb, pen_pal, friends) VALUES (?, ?, ?, ?, ?)');
                 $stmtLookingFor->bindParam(1, $this->last_inserted_id, PDO::PARAM_INT);
@@ -553,7 +556,7 @@ class API
                 $stmtLookingFor->bindParam(4, $pen_pal, PDO::PARAM_INT);
                 $stmtLookingFor->bindParam(5, $friends, PDO::PARAM_INT);
                 $stmtLookingFor->execute();
-    
+
                 // Insert into `image` table
                 $stmtImage = $this->conn->prepare('INSERT INTO image (Profile_User_idUser, image_file_path, image_file_name, image_file_type) VALUES (?, ?, ?, ?)');
                 $stmtImage->bindParam(1, $this->last_inserted_id, PDO::PARAM_INT);
@@ -610,36 +613,39 @@ class API
         }
     }
 
-    //Function for editing user
-    public function editUser($firstname, $lastname, $birthdate, $email, $hashedPassword, $gender, $user_id, $active, $ghost_mode){
+    public function editUser($fieldsToUpdate, $params)
+    {
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             try {
                 $this->conn->beginTransaction();
-                $stmt = $this->conn->prepare('UPDATE user SET firstname = ?, lastname = ?, birthdate = ?, email = ?, password = ?, gender = ?, active = ?, ghost_mode = ?, changed_at = NOW() WHERE user_id = ?;');
-                $stmt->bindParam(1, $firstname, PDO::PARAM_STR);
-                $stmt->bindParam(2, $lastname, PDO::PARAM_STR);
-                $stmt->bindParam(3, $birthdate, PDO::PARAM_STR);
-                $stmt->bindParam(4, $email, PDO::PARAM_STR);
-                $stmt->bindParam(5, $hashedPassword, PDO::PARAM_STR);
-                $stmt->bindParam(6, $gender, PDO::PARAM_STR);
-                $stmt->bindParam(7, $active, PDO::PARAM_INT);
-                $stmt->bindParam(8, $ghost_mode, PDO::PARAM_INT);
-                $stmt->bindParam(9, $user_id, PDO::PARAM_INT);
+
+                // Build the SQL query dynamically
+                $sql = 'UPDATE user SET ' . implode(', ', $fieldsToUpdate) . ', changed_at = NOW() WHERE user_id = ?';
+
+                $stmt = $this->conn->prepare($sql);
+
+                // Bind parameters dynamically
+                foreach ($params as $index => $param) {
+                    $stmt->bindValue($index + 1, $param);
+                }
+
                 $stmt->execute();
-    
-                $this->conn->commit(); // Commit the transaction after successful delete
-    
-                $this->sendResponse(200, ['status' => 200, 'message' => 'user geupdate']);
+                $this->conn->commit(); // Commit the transaction after successful update
+
+                $this->sendResponse(200, ['status' => 200, 'message' => 'User updated successfully']);
             } catch (Exception $e) {
                 $this->conn->rollBack();
-                $this->sendResponse(500, ['status' => 500, 'message' => 'Kon user niet updaten: ' . $e->getMessage()]);
+                $this->sendResponse(500, ['status' => 500, 'message' => 'Could not update user: ' . $e->getMessage()]);
             }
         } else {
             $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
         }
     }
+
+
     //Function for editing profiles
-    public function editProfile($description, $fun_fact, $province, $fav_color, $fav_animal, $fav_season, $emoji_description, $starsign, $hobby_description, $occupation, $green_flag, $red_flag, $user_id){
+    public function editProfile($description, $fun_fact, $province, $fav_color, $fav_animal, $fav_season, $emoji_description, $starsign, $hobby_description, $occupation, $green_flag, $red_flag, $user_id)
+    {
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             try {
                 $this->conn->beginTransaction();
@@ -659,9 +665,9 @@ class API
                 $stmt->bindParam(12, $red_flag, PDO::PARAM_STR);
                 $stmt->bindParam(13, $user_id, PDO::PARAM_STR);
                 $stmt->execute();
-    
+
                 $this->conn->commit(); // Commit the transaction after successful delete
-    
+
                 $this->sendResponse(200, ['status' => 200, 'message' => 'Profiel geupdate']);
             } catch (Exception $e) {
                 $this->conn->rollBack();
@@ -671,55 +677,95 @@ class API
             $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
         }
     }
-    //Function for uploading into image
-    public function uploadImage($Profile_User_idUser, $image_name, $image_type){
-        // Define the server path where images will be stored
-        $server_path = 'D:\RocMN\relatieplein\relatieplein\app\Resources\Images\\';
-    
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            try {
-                // Set the complete path where the image will be stored
-                $image_path = $server_path . $image_name;
-    
-                // Begin transaction
+
+    function uploadImage($Profile_User_idUser, $base64_image, $image_name, $image_type)
+    {
+        // FTP server credentials
+        $ftp_server = 'klas4s21.mid-ica.nl';
+        $ftp_username = '519546@klas4s21.mid-ica.nl';
+        $ftp_password = 'xJiyL6ej';
+
+        // Define remote server path where images will be stored
+        $remote_directory = '/index/Relatieplein_API/images/profiles/';
+
+        // Decode base64 image data
+        $image_data = base64_decode($base64_image);
+
+        // Create a temporary file to store the decoded image
+        $temp_file = tempnam(sys_get_temp_dir(), 'upload_');
+        file_put_contents($temp_file, $image_data);
+
+        // Connect to FTP server
+        $ftp_conn = ftp_connect($ftp_server) or die("Could not connect to $ftp_server");
+
+        // Login to FTP server
+        if (ftp_login($ftp_conn, $ftp_username, $ftp_password)) {
+            // Change to the remote directory
+            if (!ftp_chdir($ftp_conn, $remote_directory)) {
+                // Create the remote directory if it doesn't exist
+                ftp_mkdir($ftp_conn, $remote_directory);
+            }
+
+            // Create user-specific directory if it doesn't exist
+            $user_directory = $remote_directory . $Profile_User_idUser . '/';
+            if (!ftp_chdir($ftp_conn, $user_directory)) {
+                ftp_mkdir($ftp_conn, $user_directory);
+            }
+
+            // Set the remote file path
+            $remote_file = $user_directory . $image_name;
+
+            // Upload the file to FTP server
+            if (ftp_put($ftp_conn, $remote_file, $temp_file, FTP_BINARY)) {
+                // File uploaded successfully, now insert into database
+
+                // Begin database transaction
                 $this->conn->beginTransaction();
-    
+
                 // Prepare and execute the SQL statement
                 $stmt = $this->conn->prepare('INSERT INTO `image` (Profile_User_idUser, image_file_path, image_file_name, image_file_type) VALUES (?, ?, ?, ?)');
                 $stmt->bindParam(1, $Profile_User_idUser, PDO::PARAM_INT);
-                $stmt->bindParam(2, $image_path, PDO::PARAM_STR);
+                $stmt->bindParam(2, $remote_file, PDO::PARAM_STR);
                 $stmt->bindParam(3, $image_name, PDO::PARAM_STR);
                 $stmt->bindParam(4, $image_type, PDO::PARAM_STR);
                 $stmt->execute();
-    
+
                 // Commit the transaction after successful insertion
                 $this->conn->commit();
-    
+
                 // Send a success response
                 $this->sendResponse(200, ['status' => 200, 'message' => 'Image uploaded']);
-            } catch (Exception $e) {
-                // Roll back the transaction in case of error
-                $this->conn->rollBack();
-                // Send an error response
-                $this->sendResponse(500, ['status' => 500, 'message' => 'Could not upload image: ' . $e->getMessage()]);
+            } else {
+                // Error uploading file to FTP server
+                $this->sendResponse(500, ['status' => 500, 'message' => 'Could not upload image to FTP server']);
             }
+
+            // Remove the temporary file
+            unlink($temp_file);
+
+            // Close FTP connection
+            ftp_close($ftp_conn);
         } else {
-            // Send a response for method not allowed
-            $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
+            // Failed to connect/login to FTP server
+            $this->sendResponse(500, ['status' => 500, 'message' => 'Could not connect to FTP server']);
         }
     }
-    
+
+
+
+
     //Function for deleting image
-    public function deleteImage($image_id) {
+    public function deleteImage($image_id)
+    {
         if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
             try {
                 $this->conn->beginTransaction();
                 $stmt = $this->conn->prepare('DELETE FROM `image` WHERE image_id = ?');
                 $stmt->bindParam(1, $image_id, PDO::PARAM_INT);
                 $stmt->execute();
-    
+
                 $this->conn->commit(); // Commit the transaction after successful delete
-    
+
                 $this->sendResponse(200, ['status' => 200, 'message' => 'Image verwijderd']);
             } catch (Exception $e) {
                 $this->conn->rollBack();
@@ -730,16 +776,17 @@ class API
         }
     }
 
-    public function deleteUser($user_id){
+    public function deleteUser($user_id)
+    {
         if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
             try {
                 $this->conn->beginTransaction();
                 $stmt = $this->conn->prepare('DELETE FROM `user` WHERE user_id = ?');
                 $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
                 $stmt->execute();
-    
+
                 $this->conn->commit(); // Commit the transaction after successful delete
-    
+
                 $this->sendResponse(200, ['status' => 200, 'message' => 'User verwijderd']);
             } catch (Exception $e) {
                 $this->conn->rollBack();
