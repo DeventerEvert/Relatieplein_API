@@ -43,8 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $response = $swipeService->login($input['email'], $input['password']);
         echo json_encode($response);
     } else {
-        http_response_code(400);
-        echo json_encode(['message' => 'Invalid input']);
+        // http_response_code(400);
+        // echo json_encode(['message' => 'Invalid input']);
     }
 }
 
@@ -238,73 +238,73 @@ if (
 
 //Voor insertOnboardingValues in database
 
-if (
-    isset($input['firstNameOnboarding']) && isset($input['lastNameOnboarding']) && isset($input['birthdayOnboarding']) && isset($input['emailOnboarding']) &&
-    isset($input['passwordOnboarding']) && isset($input['genderOnboarding']) && isset($input['selectedGenderPreferences']) && isset($input['description']) &&
-    isset($input['fun_fact']) && isset($input['province']) && isset($input['fav_color']) && isset($input['fav_animal']) && isset($input['fav_season']) &&
-    isset($input['emoji_description']) && isset($input['starsign']) && isset($input['hobby_description']) && isset($input['occupation']) && isset($input['green_flag'])
-    && isset($input['red_flag']) && isset($input['selectedLookingFors']) && isset($input['imgFileName']) && isset($input['imgFilePath']) && isset($input['imgFileType'])
-) {
-    // For onboarding user
-    $first_name = $input['firstNameOnboarding'];
-    $last_name = $input['lastNameOnboarding'];
-    $birthdate = $input['birthdayOnboarding'];
-    $email = $input['emailOnboarding'];
-    $password = $input['passwordOnboarding'];
-    $gender = $input['genderOnboarding'];
-    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+// if (
+//     isset($input['firstNameOnboarding']) && isset($input['lastNameOnboarding']) && isset($input['birthdayOnboarding']) && isset($input['emailOnboarding']) &&
+//     isset($input['passwordOnboarding']) && isset($input['genderOnboarding']) && isset($input['selectedGenderPreferences']) && isset($input['description']) &&
+//     isset($input['fun_fact']) && isset($input['province']) && isset($input['fav_color']) && isset($input['fav_animal']) && isset($input['fav_season']) &&
+//     isset($input['emoji_description']) && isset($input['starsign']) && isset($input['hobby_description']) && isset($input['occupation']) && isset($input['green_flag'])
+//     && isset($input['red_flag']) && isset($input['selectedLookingFors']) && isset($input['imgFileName']) && isset($input['imgFilePath']) && isset($input['imgFileType'])
+// ) {
+//     // For onboarding user
+//     $first_name = $input['firstNameOnboarding'];
+//     $last_name = $input['lastNameOnboarding'];
+//     $birthdate = $input['birthdayOnboarding'];
+//     $email = $input['emailOnboarding'];
+//     $password = $input['passwordOnboarding'];
+//     $gender = $input['genderOnboarding'];
+//     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-    // For onboarding profile
-    $description = $input['description'];
-    $fun_fact = $input['fun_fact'];
-    $province = $input['province'];
-    $fav_color = $input['fav_color'];
-    $fav_animal = $input['fav_animal'];
-    $fav_season = $input['fav_season'];
-    $emoji_description = $input['emoji_description'];
-    $starsign = $input['starsign'];
-    $hobby_description = $input['hobby_description'];
-    $occupation = $input['occupation'];
-    $green_flag = $input['green_flag'];
-    $red_flag = $input['red_flag'];
+//     // For onboarding profile
+//     $description = $input['description'];
+//     $fun_fact = $input['fun_fact'];
+//     $province = $input['province'];
+//     $fav_color = $input['fav_color'];
+//     $fav_animal = $input['fav_animal'];
+//     $fav_season = $input['fav_season'];
+//     $emoji_description = $input['emoji_description'];
+//     $starsign = $input['starsign'];
+//     $hobby_description = $input['hobby_description'];
+//     $occupation = $input['occupation'];
+//     $green_flag = $input['green_flag'];
+//     $red_flag = $input['red_flag'];
 
-    // For onboarding sexPref
-    $selectedGenderPreferences = $input['selectedGenderPreferences'];
+//     // For onboarding sexPref
+//     $selectedGenderPreferences = $input['selectedGenderPreferences'];
 
-    // For onboarding looking for
-    $selectedLookingFors = $input['selectedLookingFors'];
+//     // For onboarding looking for
+//     $selectedLookingFors = $input['selectedLookingFors'];
 
-    // For onboarding image
-    $image_file_name = $input['imgFileName'];
-    $image_file_path = $input['imgFilePath'];
-    $image_file_type = $input['imgFileType'];
+//     // For onboarding image
+//     $image_file_name = $input['imgFileName'];
+//     $image_file_path = $input['imgFilePath'];
+//     $image_file_type = $input['imgFileType'];
 
-    $response = $swipeService->insertOnboardingValues(
-        $first_name,
-        $last_name,
-        $birthdate,
-        $email,
-        $hashedPassword,
-        $gender,
-        $selectedGenderPreferences,
-        $description,
-        $fun_fact,
-        $province,
-        $fav_color,
-        $fav_animal,
-        $fav_season,
-        $emoji_description,
-        $starsign,
-        $hobby_description,
-        $occupation,
-        $green_flag,
-        $red_flag,
-        $selectedLookingFors,
-        $image_file_path,
-        $image_file_name,
-        $image_file_type
-    );
-}
+//     $response = $swipeService->insertOnboardingValues(
+//         $first_name,
+//         $last_name,
+//         $birthdate,
+//         $email,
+//         $hashedPassword,
+//         $gender,
+//         $selectedGenderPreferences,
+//         $description,
+//         $fun_fact,
+//         $province,
+//         $fav_color,
+//         $fav_animal,
+//         $fav_season,
+//         $emoji_description,
+//         $starsign,
+//         $hobby_description,
+//         $occupation,
+//         $green_flag,
+//         $red_flag,
+//         $selectedLookingFors,
+//         $image_file_path,
+//         $image_file_name,
+//         $image_file_type
+//     );
+// }
 
 //Voor delete image
 if (isset($input['image_id'])) {
@@ -357,6 +357,81 @@ if (
 
     $response = $swipeService->editProfile($description, $fun_fact, $province, $fav_color, $fav_animal, $fav_season, $emoji_description, $starsign, $hobby_description, $occupation, $green_flag, $red_flag, $user_id);
 }
+
+//Voor insert sexual_preference
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    if (isset($input['selectedGenderPreferences']) && isset($input['SPprofile_id'])) {
+        $selectedGenderPreferences = $input['selectedGenderPreferences'];
+        $profile_id = $input['SPprofile_id'];
+        $swipeService->insertSexual_preference($profile_id, $selectedGenderPreferences);
+    }
+}
+
+//Voor insert Looking_for
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    if (isset($input['selectedLookingFor']) && isset($input['LFprofile_id'])) {
+        $selectedLookingFor = $input['selectedLookingFor'];
+        $profile_id = $input['LFprofile_id'];
+        $swipeService->insertLooking_For($profile_id, $selectedLookingFor);
+    }
+}
+
+//Voor update Looking_for en sexPref
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    // Check if necessary inputs are set
+    if (isset($input['edit_profile_id']) && isset($input['editLookingFor'])) {
+        $profile_id = $input['edit_profile_id'];
+        $editLookingFor = $input['editLookingFor']; // Ensure this is correctly named and structured
+
+        $swipeService->editLookingFor($profile_id, $editLookingFor);
+    }
+}
+
+//Voor update Looking_for en sexPref
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    // Check if necessary inputs are set
+    if (isset($input['editGenderPreferences']) && isset($input['edit_profile_id'])) {
+        $editGenderPreferences = $input['editGenderPreferences'];
+        $profile_id = $input['edit_profile_id'];
+
+        // Invoke editSexual_preference
+        $swipeService->editSexual_preference($profile_id, $editGenderPreferences);
+
+        // Respond with success message or handle further operations
+        // Optionally, you can return a JSON response indicating success or failure
+        echo json_encode(['status' => 200, 'message' => 'Sexual preferences updated successfully']);
+    } else {
+        // Handle missing parameters error
+        echo json_encode(['status' => 400, 'message' => 'Missing parameters']);
+    }
+}
+
+//Voor update Looking_for en sexPref
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    if (isset($input['activateUser_id'])) {
+        $activateUser_id = $input['activateUser_id'];
+
+        // Invoke editSexual_preference
+        $swipeService->activateAccount($activateUser_id);
+
+        echo json_encode(['status' => 200, 'message' => 'Account succesfully activated']);
+    } else {
+        // Handle missing parameters error
+        echo json_encode(['status' => 400, 'message' => 'Missing parameters']);
+    }
+}
+
+
 
 //Voor edit user
 if ($_SERVER['REQUEST_METHOD'] === 'PUT') {

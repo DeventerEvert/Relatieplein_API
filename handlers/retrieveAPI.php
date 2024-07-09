@@ -625,7 +625,7 @@ class API
                 $stmt = $this->conn->prepare($sql);
 
                 // Bind parameters dynamically
-                foreach ($params as $index => $param) {
+                foreach ($params as $index => &$param) {
                     $stmt->bindValue($index + 1, $param);
                 }
 
@@ -642,7 +642,6 @@ class API
         }
     }
 
-
     //Function for editing profiles
     public function editProfile($description, $fun_fact, $province, $fav_color, $fav_animal, $fav_season, $emoji_description, $starsign, $hobby_description, $occupation, $green_flag, $red_flag, $user_id)
     {
@@ -651,7 +650,7 @@ class API
                 $this->conn->beginTransaction();
                 $stmt = $this->conn->prepare('UPDATE profile SET `description` = ?, fun_fact = ?, province = ?, fav_color = ?, fav_animal = ?, fav_season = ?, emoji_description = ?,
                 starsign = ?, hobby_description = ?, occupation = ?, green_flag = ?, red_flag = ?  WHERE user_id = ?;');
-                $stmt->bindParam(1, $description, PDO::PARAM_INT);
+                $stmt->bindParam(1, $description, PDO::PARAM_STR);
                 $stmt->bindParam(2, $fun_fact, PDO::PARAM_STR);
                 $stmt->bindParam(3, $province, PDO::PARAM_STR);
                 $stmt->bindParam(4, $fav_color, PDO::PARAM_STR);
@@ -753,7 +752,6 @@ class API
 
 
 
-
     //Function for deleting image
     public function deleteImage($image_id)
     {
@@ -776,6 +774,8 @@ class API
         }
     }
 
+
+    //Function voor delete user
     public function deleteUser($user_id)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
@@ -791,6 +791,221 @@ class API
             } catch (Exception $e) {
                 $this->conn->rollBack();
                 $this->sendResponse(500, ['status' => 500, 'message' => 'Kon user niet verwijderen: ' . $e->getMessage()]);
+            }
+        } else {
+            $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
+        }
+    }
+
+
+
+
+    //Voor insert sexual_preference
+    public function insertSexual_preference($profile_id, $selectedGenderPreferences)
+    {
+        try {
+            $this->conn->beginTransaction();
+
+            $male = $female = $non_binary = $male_to_female = $female_to_male = $other = 0;
+
+            foreach ($selectedGenderPreferences as $preference) {
+                switch ($preference) {
+                    case 'male':
+                        $male = 1;
+                        break;
+                    case 'female':
+                        $female = 1;
+                        break;
+                    case 'non-binary':
+                        $non_binary = 1;
+                        break;
+                    case 'male_to_female':
+                        $male_to_female = 1;
+                        break;
+                    case 'female_to_male':
+                        $female_to_male = 1;
+                        break;
+                    case 'other':
+                        $other = 1;
+                        break;
+                }
+            }
+
+            $stmtPreference = $this->conn->prepare('INSERT INTO sexual_preference (profile_id, male, female, non_binary, male_to_female, female_to_male, other) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $stmtPreference->bindParam(1, $profile_id, PDO::PARAM_INT);
+            $stmtPreference->bindParam(2, $male, PDO::PARAM_INT);
+            $stmtPreference->bindParam(3, $female, PDO::PARAM_INT);
+            $stmtPreference->bindParam(4, $non_binary, PDO::PARAM_INT);
+            $stmtPreference->bindParam(5, $male_to_female, PDO::PARAM_INT);
+            $stmtPreference->bindParam(6, $female_to_male, PDO::PARAM_INT);
+            $stmtPreference->bindParam(7, $other, PDO::PARAM_INT);
+            $stmtPreference->execute();
+
+            $this->conn->commit();
+            $this->sendResponse(200, ['status' => 200, 'message' => 'Sexual preferences added successfully']);
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add sexual preferences: ' . $e->getMessage()]);
+        }
+    }
+
+
+
+    //Voor insert looking for
+    public function insertLooking_For($profile_id, $selectedLookingFor)
+    {
+        try {
+            $this->conn->beginTransaction();
+
+            $relationship = $fwb = $pen_pal = $friends = 0;
+
+            foreach ($selectedLookingFor as $lookingFor) {
+                switch ($lookingFor) {
+                    case 'relationship':
+                        $relationship = 1;
+                        break;
+                    case 'fwb':
+                        $fwb = 1;
+                        break;
+                    case 'pen-pal':
+                        $pen_pal = 1;
+                        break;
+                    case 'friends':
+                        $friends = 1;
+                        break;
+                }
+            }
+
+            $stmtLookingFor = $this->conn->prepare('INSERT INTO looking_for (profile_id, relationship, fwb, pen_pal, friends) VALUES (?, ?, ?, ?, ?)');
+            $stmtLookingFor->bindParam(1, $profile_id, PDO::PARAM_INT);
+            $stmtLookingFor->bindParam(2, $relationship, PDO::PARAM_INT);
+            $stmtLookingFor->bindParam(3, $fwb, PDO::PARAM_INT);
+            $stmtLookingFor->bindParam(4, $pen_pal, PDO::PARAM_INT);
+            $stmtLookingFor->bindParam(5, $friends, PDO::PARAM_INT);
+            $stmtLookingFor->execute();
+
+            $this->conn->commit();
+            $this->sendResponse(200, ['status' => 200, 'message' => 'Looking for added successfully']);
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to add looking for: ' . $e->getMessage()]);
+        }
+    }
+
+    //Voor edit sexual prefference
+
+    public function editSexual_preference($profile_id, $selectedGenderPreferences)
+    {
+        try {
+            $this->conn->beginTransaction();
+
+            // Initialize variables for preferences
+            $male = $female = $non_binary = $male_to_female = $female_to_male = $other = 0;
+
+            // Set preferences based on input array
+            foreach ($selectedGenderPreferences as $preference) {
+                switch ($preference) {
+                    case 'male':
+                        $male = 1;
+                        break;
+                    case 'female':
+                        $female = 1;
+                        break;
+                    case 'non-binary':
+                        $non_binary = 1;
+                        break;
+                    case 'male_to_female':
+                        $male_to_female = 1;
+                        break;
+                    case 'female_to_male':
+                        $female_to_male = 1;
+                        break;
+                    case 'other':
+                        $other = 1;
+                        break;
+                    // Add handling for other cases if necessary
+                }
+            }
+
+            // Prepare and execute SQL statement
+            $stmt = $this->conn->prepare('UPDATE sexual_preference SET 
+                                          male = ?, female = ?, `non_binary` = ?, 
+                                          male_to_female = ?, female_to_male = ?, 
+                                          other = ? WHERE profile_id = ?');
+            $stmt->bindParam(1, $male, PDO::PARAM_INT);
+            $stmt->bindParam(2, $female, PDO::PARAM_INT);
+            $stmt->bindParam(3, $non_binary, PDO::PARAM_INT);
+            $stmt->bindParam(4, $male_to_female, PDO::PARAM_INT);
+            $stmt->bindParam(5, $female_to_male, PDO::PARAM_INT);
+            $stmt->bindParam(6, $other, PDO::PARAM_INT);
+            $stmt->bindParam(7, $profile_id, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $this->conn->commit();
+            $this->sendResponse(200, ['status' => 200, 'message' => 'Sexual preferences updated successfully']);
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to update sexual preferences: ' . $e->getMessage()]);
+        }
+    }
+
+
+    //Voor edit Looking for
+    public function editLookingFor($profile_id, $lookingForPreferences)
+    {
+        try {
+            $this->conn->beginTransaction();
+
+            $relationship = $friends_with_benefits = $pen_pal = $friends = 0;
+
+            foreach ($lookingForPreferences as $preference) {
+                switch ($preference) {
+                    case 'relationship':
+                        $relationship = 1;
+                        break;
+                    case 'friends_with_benefits':
+                        $friends_with_benefits = 1;
+                        break;
+                    case 'pen_pal':
+                        $pen_pal = 1;
+                        break;
+                    case 'friends':
+                        $friends = 1;
+                        break;
+                }
+            }
+
+            $stmt = $this->conn->prepare('UPDATE looking_for SET relationship = ?, fwb = ?, pen_pal = ?, friends = ? WHERE profile_id = ?');
+            $stmt->bindParam(1, $relationship, PDO::PARAM_INT);
+            $stmt->bindParam(2, $friends_with_benefits, PDO::PARAM_INT);
+            $stmt->bindParam(3, $pen_pal, PDO::PARAM_INT);
+            $stmt->bindParam(4, $friends, PDO::PARAM_INT);
+            $stmt->bindParam(5, $profile_id, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $this->conn->commit();
+            $this->sendResponse(200, ['status' => 200, 'message' => 'Looking for preferences updated successfully']);
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            $this->sendResponse(500, ['status' => 500, 'message' => 'Failed to update looking for preferences: ' . $e->getMessage()]);
+        }
+    }
+
+    //Function voor na de onboarding ghost mode naar 0 en actief naar 1
+    public function activateAccount($activateUser_id){
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+            try {
+                $this->conn->beginTransaction();
+                $stmt = $this->conn->prepare('UPDATE user SET active = 1, ghost_mode = 0 WHERE user_id = ?');
+                $stmt->bindParam(1, $activateUser_id, PDO::PARAM_INT);
+                $stmt->execute();
+
+                $this->conn->commit(); // Commit the transaction after successful delete
+
+                $this->sendResponse(200, ['status' => 200, 'message' => 'Account activated']);
+            } catch (Exception $e) {
+                $this->conn->rollBack();
+                $this->sendResponse(500, ['status' => 500, 'message' => 'Could not activate account: ' . $e->getMessage()]);
             }
         } else {
             $this->sendResponse(405, ['status' => 405, 'message' => 'Method Not Allowed']);
